@@ -44,14 +44,15 @@ class Pipeline:
     def load(self, data_frame: pd.DataFrame):
 
         if inspect(self.database.engine).has_table(self.data_class.__tablename__):
+            self.database.run_migrations()
             print(">>> exists")
             #if we dont want data to fully load again in the local DB,
             #better to compare first and only add a new chunk
             #dropping the existins size of new table
             count_rows_in_db = self.get_session().query(self.data_class.id).count()
-            print(f"Rows in current db: {count_rows_in_db}")
+            print(f"Rows in outsourced table db: {count_rows_in_db}")
             count_rows_in_updated_data_source = len(data_frame.index)
-            print(f"Rows in current db: {count_rows_in_updated_data_source}")
+            print(f"Rows in current {self.data_class.__tablename__} db: {count_rows_in_updated_data_source}")
             data_frame = data_frame.iloc[
                          count_rows_in_updated_data_source - (count_rows_in_updated_data_source - count_rows_in_db)
                          :]

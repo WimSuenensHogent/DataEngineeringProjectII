@@ -1,19 +1,19 @@
 from app.etl.transformer import Transformer
-from app.models.models import Base, CovidVacinationByCategory
+from app.models.models import Base, CovidVaccinationByCategory, CovidMortality, CovidConfirmedCases
 from app.tools.logger import get_logger
 from app.tools.database import Database
 from app.etl.pipeline import Pipeline
 
 logger = get_logger(__name__)
-
+pipelines = []
 
 def run():
     try:
         database = Database(Base)
 
-        data_pipeline = Pipeline(
+        data_pipeline_vaccinations = Pipeline(
             database,
-            CovidVacinationByCategory,
+            CovidVaccinationByCategory,
             csv_path="C:/Users/ilya/Desktop/testdata/cov1.csv",
             #csv_path="https://epistat.sciensano.be/Data/COVID19BE_VACC.csv",
             transformer=Transformer(
@@ -28,11 +28,51 @@ def run():
                 }
             ),
         )
+        pipelines.append(data_pipeline_vaccinations)
 
+        print("update vacc")
+
+        data_pipeline_mortality = Pipeline(
+            database,
+            CovidMortality,
+            csv_path="C:/Users/ilya/Desktop/testdata/mort1.csv",
+            # csv_path="https://epistat.sciensano.be/Data/COVID19BE_MORT.csv",
+            transformer=Transformer(
+                column_renamer={
+                    "DATE": "date",
+                    "REGION": "region",
+                    "AGEGROUP": "agegroup",
+                    "SEX": "sex",
+                    "DEATHS": "deaths",
+                }
+            ),
+        )
+        pipelines.append(data_pipeline_mortality)
+
+        data_pipeline_confirmed_cases = Pipeline(
+            database,
+            CovidConfirmedCases,
+            csv_path="C:/Users/ilya/Desktop/testdata/case1.csv",
+            # csv_path="https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.csv",
+            transformer=Transformer(
+                column_renamer={
+                    "DATE": "date",
+                    "PROVINCE": "province",
+                    "REGION": "region",
+                    "AGEGROUP": "agegroup",
+                    "SEX": "sex",
+                    "CASES": "cases",
+                }
+            ),
+        )
+        pipelines.append(data_pipeline_confirmed_cases)
+
+
+        print("update mort")
     except Exception as exception:
         logger.error(exception)
 
-    data_pipeline.process()
+    for pipe in pipelines: pipe.process()
 
 
 if __name__ == "__main__":
