@@ -3,8 +3,11 @@ from sqlalchemy.orm import sessionmaker
 from app.models.models import Base
 from app.etl.transformer import Transformer
 
-class Pipeline():
-    def __init__(self, database, data_class: Base, csv_path: str, transformer: Transformer):
+
+class Pipeline:
+    def __init__(
+        self, database, data_class: Base, csv_path: str, transformer: Transformer
+    ):
         self.database = database
         self.data_class = data_class
         self.csv_path = csv_path
@@ -28,13 +31,14 @@ class Pipeline():
         Returns:
             [type]: [description]
         """
-        if self.transformer :
-            data_frame = self.transformer.transform_data_frame(data_frame)        
+        if self.transformer:
+            data_frame = self.transformer.transform_data_frame(data_frame)
         return data_frame
 
-
     def load(self, data_frame: pd.DataFrame):
-        list = [self.data_class(**kwargs) for kwargs in data_frame.to_dict(orient='records')]
+        list = [
+            self.data_class(**kwargs) for kwargs in data_frame.to_dict(orient="records")
+        ]
         try:
             Session = sessionmaker(self.database.engine, expire_on_commit=False)
             session = Session()
@@ -43,7 +47,7 @@ class Pipeline():
         # except gevent.Timeout:
         #     sess.invalidate()
         #     raise
-        except:
+        except Exception:
             session.rollback()
             raise
         return list

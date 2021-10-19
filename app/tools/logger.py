@@ -10,9 +10,9 @@ import yaml
 
 from settings import BASE_DIR
 
+
 # class Logger(logging.Handler):
 
-    
 
 def get_logger(name):
     """[summary]
@@ -39,7 +39,9 @@ def get_logger(name):
     # logging.error('This is an error message')
     # logging.critical('This is a critical message')
 
-    with open(os.path.join(BASE_DIR, 'settings.yaml'), mode='r', encoding="UTF-8") as file:
+    with open(
+        os.path.join(BASE_DIR, "settings.yaml"), mode="r", encoding="UTF-8"
+    ) as file:
         config = yaml.safe_load(file.read())
         logging.config.dictConfig(config)
 

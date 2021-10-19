@@ -1,7 +1,7 @@
 import pandas as pd
 
-class Transformer():
 
+class Transformer:
     def __init__(self, column_renamer: dict = None):
         self.column_renamer = column_renamer
 
@@ -14,7 +14,7 @@ class Transformer():
         Returns:
             [type]: [description]
         """
-        if self.column_renamer :
+        if self.column_renamer:
             data_frame = data_frame.rename(columns=self.column_renamer)
 
         return data_frame.head(5)

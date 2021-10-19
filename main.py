@@ -6,6 +6,7 @@ from app.etl.pipeline import Pipeline
 
 logger = get_logger(__name__)
 
+
 def run():
     try:
         database = Database(Base)
@@ -15,15 +16,17 @@ def run():
             database,
             CovidVacinationByCategory,
             csv_path="https://epistat.sciensano.be/Data/COVID19BE_VACC.csv",
-            transformer=Transformer(column_renamer = {
-                "DATE": "date",
-                "REGION": "region",
-                "AGEGROUP": "agegroup",
-                "SEX": "sex",
-                "BRAND": "brand",
-                "DOSE": "dose",
-                "COUNT": "count",
-            })
+            transformer=Transformer(
+                column_renamer={
+                    "DATE": "date",
+                    "REGION": "region",
+                    "AGEGROUP": "agegroup",
+                    "SEX": "sex",
+                    "BRAND": "brand",
+                    "DOSE": "dose",
+                    "COUNT": "count",
+                }
+            ),
         )
 
     except Exception as exception:
@@ -31,5 +34,6 @@ def run():
 
     data_pipeline.process()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     run()

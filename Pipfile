@@ -11,9 +11,16 @@ openpyxl = "*"
 pyyaml = "*"
 sqlalchemy = "*"
 pyodbc = "*"
+black = "*"
+alembic = "*"
+pre-commit = "*"
+flake8
 
 [dev-packages]
 pylint = "*"
 
 [requires]
 python_version = "3.8"
+
+[pipenv]
+allow_prereleases = true
