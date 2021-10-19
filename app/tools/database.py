@@ -16,8 +16,13 @@ class Database:
         driver = "ODBC Driver 17 for SQL Server"
         user = "SA"
         password = "SQL4HoGent"
+
+
+
+
         self.database_con = (
-            f"mssql+pyodbc://{user}:{password}@{server}:1433/{database}?driver={driver}"
+            #f"mssql+pyodbc://{user}:{password}@{server}:1433/{database}?driver={driver}"
+            f"mssql+pyodbc://localhost/{database}?driver={driver}"
         )
         # self.engine = create_engine(f'mssql+pyodbc://{user}:{password}@{server}/{database}?driver={driver}')
         self.engine = create_engine(self.database_con, echo=True)

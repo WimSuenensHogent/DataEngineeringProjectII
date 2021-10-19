@@ -16,5 +16,4 @@ class Transformer:
         """
         if self.column_renamer:
             data_frame = data_frame.rename(columns=self.column_renamer)
-
-        return data_frame.head(5)
+        return data_frame

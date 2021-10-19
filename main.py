@@ -15,7 +15,8 @@ def run():
         data_pipeline = Pipeline(
             database,
             CovidVacinationByCategory,
-            csv_path="https://epistat.sciensano.be/Data/COVID19BE_VACC.csv",
+            csv_path="C:/Users/ilya/Desktop/testdata/cov1.csv",
+            #csv_path="https://epistat.sciensano.be/Data/COVID19BE_VACC.csv",
             transformer=Transformer(
                 column_renamer={
                     "DATE": "date",
