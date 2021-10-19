@@ -14,7 +14,7 @@ def run():
         data_pipeline_vaccinations = Pipeline(
             database,
             CovidVaccinationByCategory,
-            csv_path="C:/Users/ilya/Desktop/testdata/cov1.csv",
+            csv_path="testdata/cov1.csv",
             #csv_path="https://epistat.sciensano.be/Data/COVID19BE_VACC.csv",
             transformer=Transformer(
                 column_renamer={
@@ -35,7 +35,7 @@ def run():
         data_pipeline_mortality = Pipeline(
             database,
             CovidMortality,
-            csv_path="C:/Users/ilya/Desktop/testdata/mort1.csv",
+            csv_path="testdata/mort1.csv",
             # csv_path="https://epistat.sciensano.be/Data/COVID19BE_MORT.csv",
             transformer=Transformer(
                 column_renamer={
@@ -52,7 +52,7 @@ def run():
         data_pipeline_confirmed_cases = Pipeline(
             database,
             CovidConfirmedCases,
-            csv_path="C:/Users/ilya/Desktop/testdata/case1.csv",
+            csv_path="testdata/case1.csv",
             # csv_path="https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.csv",
             transformer=Transformer(
                 column_renamer={
