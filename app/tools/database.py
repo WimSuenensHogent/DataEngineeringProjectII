@@ -1,6 +1,6 @@
 """[summary]
 """
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 
 from app.models.models import Base
 

@@ -10,7 +10,6 @@ logger = get_logger(__name__)
 def run():
     try:
         database = Database(Base)
-        database.run_migrations()
 
         data_pipeline = Pipeline(
             database,
