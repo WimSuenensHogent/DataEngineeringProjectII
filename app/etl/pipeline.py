@@ -46,6 +46,7 @@ class Pipeline:
         if inspect(self.database.engine).has_table(self.data_class.__tablename__):
             self.database.run_migrations()
             print(">>> exists")
+
             #if we dont want data to fully load again in the local DB,
             #better to compare first and only add a new chunk
             #dropping the existins size of new table

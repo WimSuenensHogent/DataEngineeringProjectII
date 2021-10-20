@@ -26,7 +26,7 @@ def run():
                     "DOSE": "dose",
                     "COUNT": "count",
                 }
-            ),
+            )
         )
         pipelines.append(data_pipeline_vaccinations)
 
