@@ -3,15 +3,13 @@
 Returns:
     [type]: [description]
 """
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.sql.schema import Column
-from sqlalchemy.sql.sqltypes import String, Integer, Date
+from sqlalchemy.sql.sqltypes import Date
+from sqlalchemy.sql.sqltypes import Integer
+from sqlalchemy.sql.sqltypes import String
 
 Base = declarative_base()
-engine = create_engine(
-    "mssql://sa:SQL4HoGent@34.140.20.123/test_tim?driver=ODBC Driver 17 for SQL Server"
-)
 
 
 class CovidVaccinationByCategory(Base):
@@ -52,6 +50,7 @@ class CovidMortality(Base):
             self.region,
             self.agegroup,
         )
+
 
 class CovidConfirmedCases(Base):
     __tablename__ = "covid_confirmed_cases"

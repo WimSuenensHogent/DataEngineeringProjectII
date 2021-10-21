@@ -9,15 +9,15 @@ pandas = "*"
 jupyter = "*"
 openpyxl = "*"
 pyyaml = "*"
+pyarrow = "*"
 sqlalchemy = "*"
 pyodbc = "*"
-black = "*"
 alembic = "*"
 pre-commit = "*"
-flake8
 
 [dev-packages]
 pylint = "*"
+black = "*"
 
 [requires]
 python_version = "3.8"
