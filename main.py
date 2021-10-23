@@ -5,8 +5,6 @@ from datetime import datetime
 
 import yaml
 from alembic.config import Config
-from sqlalchemy import engine_from_config
-from sqlalchemy.orm import sessionmaker
 
 from alembic import command
 from app import utils
@@ -14,9 +12,11 @@ from app.etl.pipeline import Pipeline
 from app.etl.transformer import TransformCovidConfirmedCases
 from app.etl.transformer import TransformCovidMortality
 from app.etl.transformer import TransformCovidVaccinationByCategory
+from app.etl.transformer import TransformDemographicData
 from app.models.models import CovidConfirmedCases
 from app.models.models import CovidMortality
 from app.models.models import CovidVaccinationByCategory
+from app.models.models import RegionDemographics
 from app.tools.logger import get_logger
 
 logger = get_logger(__name__)
@@ -43,38 +43,43 @@ def run():
         # run db migrations
         alembic_cfg = Config("alembic.ini")
         alembic_cfg.attributes["connection"] = session.bind
-        #todo: remove voor productiebuild
-        command.downgrade(alembic_cfg, "base") # doet een downgrade vd db en gooit alles weg
+        # todo: remove voor productiebuild
+        command.downgrade(
+            alembic_cfg, "base"
+        )  # doet een downgrade vd db en gooit alles weg
         command.upgrade(alembic_cfg, "head")
 
-        data_pipeline_vaccinations = Pipeline(
-            CovidVaccinationByCategory,
-            csv_path="testdata/cov1.csv",
-            # csv_path="https://epistat.sciensano.be/Data/COVID19BE_VACC.csv",
-            transformer=TransformCovidVaccinationByCategory(),
-            session=session,
-        )
-        pipelines.append(data_pipeline_vaccinations)
-
-        print("update vacc")
-
-        data_pipeline_mortality = Pipeline(
-            CovidMortality,
-            csv_path="testdata/mort1.csv",
-            # csv_path="https://epistat.sciensano.be/Data/COVID19BE_MORT.csv",
-            transformer=TransformCovidMortality(),
-            session=session,
-        )
-        pipelines.append(data_pipeline_mortality)
-
-        data_pipeline_confirmed_cases = Pipeline(
-            CovidConfirmedCases,
-            csv_path="testdata/case1.csv",
-            # csv_path="https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.csv",
-            transformer=TransformCovidConfirmedCases(),
-            session=session,
-        )
-        pipelines.append(data_pipeline_confirmed_cases)
+        # Pipeline factory maken ?
+        pipelines = [
+            Pipeline(
+                CovidVaccinationByCategory,
+                path="testdata/cov1.csv",
+                # path="https://epistat.sciensano.be/Data/COVID19BE_VACC.csv",
+                transformer=TransformCovidVaccinationByCategory(),
+                session=session,
+            ),
+            Pipeline(
+                CovidMortality,
+                path="testdata/mort1.csv",
+                # path="https://epistat.sciensano.be/Data/COVID19BE_MORT.csv",
+                transformer=TransformCovidMortality(),
+                session=session,
+            ),
+            Pipeline(
+                CovidConfirmedCases,
+                path="testdata/case1.csv",
+                # path="https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.csv",
+                transformer=TransformCovidConfirmedCases(),
+                session=session,
+            ),
+            Pipeline(
+                RegionDemographics,
+                path="https://statbel.fgov.be/sites/default/files/files/opendata/bevolking%20naar%20woonplaats%2C%20nationaliteit%20burgelijke%20staat%20%2C%20leeftijd%20en%20geslacht/TF_SOC_POP_STRUCT_2021.zip",
+                # path="https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.csv",
+                transformer=TransformDemographicData(),
+                session=session,
+            ),
+        ]
 
         print(datetime.now())
         print("--- %s minutes ---" % ((time.time() - start_time) / 60))
@@ -84,7 +89,14 @@ def run():
         # except Exception as exception:
         #     logger.error(exception)
 
-    for pipe in pipelines:
+    # Als je voor develop purposes enkel bepaalde pipelines wilt importeren kan je indices opgeven
+    # a[start:stop]  # items start through stop-1
+    # a[start:]  # items start through the rest of the array
+    # a[:stop]  # items from the beginning through stop-1
+    # a[:]  # a copy of the whole array
+    # proces enkel laatste   pipelines[len(pipelines) - 1:len(pipelines)]:
+
+    for pipe in pipelines[-1:]:
         pipe.process()
 
 

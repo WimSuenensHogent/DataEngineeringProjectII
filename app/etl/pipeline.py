@@ -1,22 +1,23 @@
 import pandas as pd
-from sqlalchemy.engine import Engine
+
 from sqlalchemy.orm import Session
 
 from app.etl.transformer import CommonTransformer
+from app.exceptions import IncorrectDataSourcePath
 from app.models.models import Base
 
 
 class Pipeline:
     def __init__(
-            self,
-            data_class: Base,
-            csv_path: str,
-            transformer: CommonTransformer,
-            session: Session,
+        self,
+        data_class: Base,
+        path: str,
+        transformer: CommonTransformer,
+        session: Session,
     ):
         self.session = session
         self.data_class = data_class
-        self.csv_path = csv_path
+        self.path = path
         self.transformer = transformer
 
     def extract(self):
@@ -25,7 +26,14 @@ class Pipeline:
         Returns:
             pd.DataFrame: [description]
         """
-        data_frame = pd.read_csv(self.csv_path)
+        if ".csv" in self.path:
+            data_frame = pd.read_csv(self.path)
+        elif ".xlsx" in self.path:
+            data_frame = pd.read_excel(self.path, nrows=50)
+        elif ".zip" in self.path:
+            data_frame = pd.read_csv(self.path, delimiter="|")
+        else:
+            raise IncorrectDataSourcePath
         return data_frame
 
     def transform(self, data_frame: pd.DataFrame):
@@ -37,9 +45,7 @@ class Pipeline:
         Returns:
             [type]: [description]
         """
-        if self.transformer:
-            data_frame = self.transformer.transform(data_frame)
-        return data_frame
+        return self.transformer.transform(data_frame, self.path)
 
     def load(self, data_frame: pd.DataFrame):
         # if we dont want data to fully load again in the local DB,
@@ -52,15 +58,14 @@ class Pipeline:
             f"Rows in current {self.data_class.__tablename__} db: {count_rows_in_updated_data_source}"
         )
         data_frame = data_frame.iloc[
-                     count_rows_in_updated_data_source
-                     - (count_rows_in_updated_data_source - count_rows_in_db):
-                     ]
+            count_rows_in_updated_data_source
+            - (count_rows_in_updated_data_source - count_rows_in_db) :
+        ]
         list = [
             self.data_class(**kwargs) for kwargs in data_frame.to_dict(orient="records")
         ]
         self.session.add_all(list)
         self.session.commit()
-
 
     def process(self):
         data_frame = self.extract()
