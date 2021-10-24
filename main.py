@@ -20,6 +20,7 @@ from app.models.models import CovidVaccinationByCategory
 from app.models.models import RegionDemographics
 from app.models.models import TotalNumberOfDeadsPerRegions
 from app.tools.logger import get_logger
+from app.utils import printProgressBar
 
 load_dotenv()
 logger = get_logger(__name__)
@@ -51,22 +52,22 @@ def run():
     pipelines = [
         Pipeline(
             CovidVaccinationByCategory,
-            path="testdata/cov1.csv",
-            # path="https://epistat.sciensano.be/Data/COVID19BE_VACC.csv",
+            #path="testdata/cov1.csv",
+            path="https://epistat.sciensano.be/Data/COVID19BE_VACC.csv",
             transformer=TransformCovidVaccinationByCategory(),
             # session=session,
         ),
         Pipeline(
             CovidMortality,
-            path="testdata/mort1.csv",
-            # path="https://epistat.sciensano.be/Data/COVID19BE_MORT.csv",
+            #path="testdata/mort1.csv",
+            path="https://epistat.sciensano.be/Data/COVID19BE_MORT.csv",
             transformer=TransformCovidMortality(),
             # session=session,
         ),
         Pipeline(
             CovidConfirmedCases,
-            path="testdata/case1.csv",
-            # path="https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.csv",
+            #path="testdata/case1.csv",
+            path="https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.csv",
             transformer=TransformCovidConfirmedCases(),
             # session=session,
         ),
@@ -90,7 +91,10 @@ def run():
     # a[:stop]  # items from the beginning through stop-1
     # a[:]  # a copy of the whole array
     # proces enkel laatste  pipeline[-1:]
-    for pipe in pipelines[-1:]:
+
+    printProgressBar(0, len(pipelines), prefix='Progress:', suffix='Complete', length=50)
+    #for pipe in pipelines[-1:]:
+    for i, pipe in enumerate(pipelines):
 
         with utils.db_session() as session:
             start = time.time()
@@ -102,7 +106,9 @@ def run():
             elapsed = end - start
             # print(f"End of migration of model {pipe.data_class.__name__}: {end_string}")
             # print(f"Time elapsed: {timedelta(seconds=elapsed)}")
-
+            time.sleep(0.1)
+            print(f"Pipeline {i} pipeline of {len(pipelines)} finished,")
+            printProgressBar(i + 1, len(pipelines), prefix='Progress:', suffix='Complete', length=50)
         session.close()
 
 
