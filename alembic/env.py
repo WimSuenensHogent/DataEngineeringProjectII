@@ -3,9 +3,11 @@ import sys
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
+from sqlalchemy import create_engine
 from sqlalchemy import pool
 
 from app.models.models import Base
+from app.utils import get_db_engine, get_db_url
 
 sys.path.append(os.getcwd())
 
@@ -45,7 +47,9 @@ def run_migrations_offline():
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    # url = config.get_main_option("sqlalchemy.url")
+    url = get_db_url()
+    # url = os.environ.get('DATABASE_URL') or 'sqlite:///database.sqlite'
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -64,12 +68,13 @@ def run_migrations_online():
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
-
+    # connectable = engine_from_config(
+    #     config.get_section(config.config_ini_section),
+    #     prefix="sqlalchemy.",
+    #     poolclass=pool.NullPool,
+    # )
+    connectable = get_db_engine()
+    
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
 

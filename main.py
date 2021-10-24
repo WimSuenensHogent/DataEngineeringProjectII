@@ -1,13 +1,12 @@
 import argparse
-import logging
 import time
 from datetime import datetime
 from datetime import timedelta
 
-import yaml
+from dotenv import load_dotenv
 from alembic.config import Config
-
 from alembic import command
+
 from app import utils
 from app.etl.pipeline import Pipeline
 from app.etl.transformer import TransformCovidConfirmedCases
@@ -22,36 +21,34 @@ from app.models.models import RegionDemographics
 from app.models.models import TotalNumberOfDeadsPerRegions
 from app.tools.logger import get_logger
 
+load_dotenv()
 logger = get_logger(__name__)
-pipelines = []
 
+def run_migrations(downgrade_first=False):
+    # run db migrations
+    with utils.db_session() as session:
+        alembic_cfg = Config("alembic.ini")
+        # pylint: disable=unsupported-assignment-operation
+        alembic_cfg.attributes["connection"] = session.bind
+
+        if (downgrade_first):
+            command.downgrade(
+                alembic_cfg, "base"
+            )  # doet een downgrade vd db en gooit alles weg
+
+        command.upgrade(alembic_cfg, "head")
+        session.close()
 
 def run():
-    # Parsing YAML file
-    parser = argparse.ArgumentParser(description="Run the covid data ETL job.")
-    parser.add_argument("config", help="A configuration file in YAML format.")
-    args = parser.parse_args()
-    config = yaml.safe_load(open(args.config))
-
-    # configure logging
-    log_config = config["logging"]
-    logging.config.dictConfig(log_config)
-    logger = logging.getLogger(__name__)
-
-    logger.info("Start ETL: {}".format(datetime.now()))
+    
+    logger.debug('Start ETL: %s', format(datetime.now()))
     start_time = time.time()
 
-    # initialize db session
-    with utils.db_session(config) as session:
-        # run db migrations
-        alembic_cfg = Config("alembic.ini")
-        alembic_cfg.attributes["connection"] = session.bind
-        # todo: remove voor productiebuild
-        command.downgrade(
-            alembic_cfg, "base"
-        )  # doet een downgrade vd db en gooit alles weg
-        command.upgrade(alembic_cfg, "head")
+    if (args.migrate):
+        run_migrations(downgrade_first = (args.migrate == 'downgrade_first'))
 
+    # initialize db session
+    with utils.db_session() as session:
         pipelines = [
             Pipeline(
                 CovidVaccinationByCategory,
@@ -112,6 +109,17 @@ def run():
         print(f"End of migration of model {pipe.data_class.__name__}: {end_string}")
         print(f"Time elapsed: {timedelta(seconds=elapsed)}")
 
+    session.close()
+
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run the covid data ETL job.")
+    parser.add_argument(
+        "-m",
+        "--migrate",
+        help="Do you want to run database migrations at first?",
+        choices=["upgrade", "downgrade_first"]
+    )
+    # Parsing YAML file
+    args = parser.parse_args()
     run()

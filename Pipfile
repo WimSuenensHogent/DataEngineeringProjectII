@@ -9,11 +9,11 @@ pandas = "*"
 jupyter = "*"
 openpyxl = "*"
 pyyaml = "*"
-pyarrow = "*"
 sqlalchemy = "*"
 pyodbc = "*"
 alembic = "*"
 pre-commit = "*"
+python-dotenv = "*"
 
 [dev-packages]
 pylint = "*"
