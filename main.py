@@ -1,12 +1,10 @@
 import argparse
-import logging
 import time
 from datetime import datetime
-
-import yaml
+from dotenv import load_dotenv
 from alembic.config import Config
-
 from alembic import command
+
 from app import utils
 from app.etl.pipeline import Pipeline
 from app.etl.transformer import TransformCovidConfirmedCases
@@ -19,37 +17,34 @@ from app.models.models import CovidVaccinationByCategory
 from app.models.models import RegionDemographics
 from app.tools.logger import get_logger
 
+load_dotenv()
 logger = get_logger(__name__)
-pipelines = []
 
+def run_migrations(downgrade_first=False):
+    # run db migrations
+    with utils.db_session() as session:
+        alembic_cfg = Config("alembic.ini")
+        # pylint: disable=unsupported-assignment-operation
+        alembic_cfg.attributes["connection"] = session.bind
+
+        if (downgrade_first):
+            command.downgrade(
+                alembic_cfg, "base"
+            )  # doet een downgrade vd db en gooit alles weg
+
+        command.upgrade(alembic_cfg, "head")
+        session.close()
 
 def run():
-    # Parsing YAML file
-    parser = argparse.ArgumentParser(description="Run the covid data ETL job.")
-    parser.add_argument("config", help="A configuration file in YAML format.")
-    args = parser.parse_args()
-    config = yaml.safe_load(open(args.config))
-
-    # configure logging
-    log_config = config["logging"]
-    logging.config.dictConfig(log_config)
-    logger = logging.getLogger(__name__)
-
-    logger.info("Start ETL: {}".format(datetime.now()))
+    
+    logger.debug('Start ETL: %s', format(datetime.now()))
     start_time = time.time()
 
-    # initialize db session
-    with utils.db_session(config) as session:
-        # run db migrations
-        alembic_cfg = Config("alembic.ini")
-        alembic_cfg.attributes["connection"] = session.bind
-        # todo: remove voor productiebuild
-        command.downgrade(
-            alembic_cfg, "base"
-        )  # doet een downgrade vd db en gooit alles weg
-        command.upgrade(alembic_cfg, "head")
+    if (args.migrate):
+        run_migrations(downgrade_first = (args.migrate == 'downgrade_first'))
 
-        # Pipeline factory maken ?
+    # initialize db session
+    with utils.db_session() as session:
         pipelines = [
             Pipeline(
                 CovidVaccinationByCategory,
@@ -83,11 +78,7 @@ def run():
 
         print(datetime.now())
         print("--- %s minutes ---" % ((time.time() - start_time) / 60))
-        logger.info("Finsished ETL: {}".format(datetime.now()))
-
-        print("update mort")
-        # except Exception as exception:
-        #     logger.error(exception)
+        logger.info('Finsished ETL: %s', format(datetime.now()))
 
     # Als je voor develop purposes enkel bepaalde pipelines wilt importeren kan je indices opgeven
     # a[start:stop]  # items start through stop-1
@@ -97,8 +88,20 @@ def run():
     # proces enkel laatste   pipelines[len(pipelines) - 1:len(pipelines)]:
 
     for pipe in pipelines[-1:]:
+    # for pipe in pipelines:
         pipe.process()
+
+    session.close()
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run the covid data ETL job.")
+    parser.add_argument(
+        "-m",
+        "--migrate",
+        help="Do you want to run database migrations at first?",
+        choices=["upgrade", "downgrade_first"]
+    )
+    # Parsing YAML file
+    args = parser.parse_args()
     run()

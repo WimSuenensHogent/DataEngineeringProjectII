@@ -60,6 +60,7 @@ __pycache__/
 # local_settings.py
 # db.sqlite3
 # db.sqlite3-journal
+database.sqlite
 
 # # Flask stuff:
 # instance/
@@ -105,7 +106,7 @@ Pipfile.lock
 # *.sage.py
 
 # # Environments
-# .env
+.env
 # .venv
 # env/
 # venv/

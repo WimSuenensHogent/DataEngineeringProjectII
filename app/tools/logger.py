@@ -43,9 +43,8 @@ def get_logger(name):
     with open(
         os.path.join(BASE_DIR, "settings.yaml"), mode="r", encoding="UTF-8"
     ) as file:
-        config = yaml.safe_load(file.read())
+        config = yaml.safe_load(file.read())["logging"]
         logging.config.dictConfig(config)
+        logger = logging.getLogger(name)
+        return logger
 
-    logger = logging.getLogger(name)
-
-    return logger
