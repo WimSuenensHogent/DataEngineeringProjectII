@@ -107,7 +107,7 @@ def run():
             # print(f"End of migration of model {pipe.data_class.__name__}: {end_string}")
             # print(f"Time elapsed: {timedelta(seconds=elapsed)}")
             time.sleep(0.1)
-            print(f"Pipeline {i} pipeline of {len(pipelines)} finished,")
+            print(f"Pipeline {i+1} pipeline of {len(pipelines)} finished,")
             printProgressBar(i + 1, len(pipelines), prefix='Progress:', suffix='Complete', length=50)
         session.close()
 
