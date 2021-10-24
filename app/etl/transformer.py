@@ -9,10 +9,12 @@ class CommonTransformer(ABC):
         column_renamer: dict = None,
         na_remover: bool = True,
         drop_columns: list = None,
+        na_filler: bool = False
     ):
         self.column_renamer = column_renamer
         self.na_remover = na_remover
         self.drop_columns = drop_columns
+        self.na_filler = na_filler
 
     def custom_transform(self, data_frame: pd.DataFrame, path):
         """
@@ -43,6 +45,8 @@ class CommonTransformer(ABC):
             data_frame.rename(columns=self.column_renamer, inplace=True)
         if self.na_remover:
             data_frame.dropna(inplace=True)
+        if self.na_filler:
+            data_frame.fillna(value=0, inplace=True)
 
         return self.custom_transform(data_frame, path)
 
@@ -98,7 +102,7 @@ class TransformCovidConfirmedCases(CommonTransformer):
 class TransformDemographicData(CommonTransformer):
     def __init__(self):
         super().__init__(
-            na_remover=True,
+            na_remover=False, #Alle data uit Brussels gewest bevat NA's velden, als gevolg geen info over brussel
             column_renamer={
                 "CD_REFNIS": "municipality_niscode",  # Gemeente nis
                 "TX_DESCR_NL": "municipality_name",  # Gemeente
@@ -124,6 +128,7 @@ class TransformDemographicData(CommonTransformer):
                 "TX_NATLTY_FR",
                 "TX_CIV_STS_FR",
             ],
+            na_filler=True
         )
 
     def custom_transform(self, data_frame: pd.DataFrame, path):
