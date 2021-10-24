@@ -13,9 +13,9 @@ class Pipeline:
         data_class: Base,
         path: str,
         transformer: CommonTransformer,
-        session: Session,
+        # session: Session,
     ):
-        self.session = session
+        # self.session = session
         self.data_class = data_class
         self.path = path
         self.transformer = transformer
@@ -47,11 +47,11 @@ class Pipeline:
         """
         return self.transformer.transform(data_frame, self.path)
 
-    def load(self, data_frame: pd.DataFrame):
+    def load(self, session: Session, data_frame: pd.DataFrame):
         # if we dont want data to fully load again in the local DB,
         # better to compare first and only add a new chunk
         # dropping the existins size of new table
-        count_rows_in_db = self.session.query(self.data_class.id).count()
+        count_rows_in_db = session.query(self.data_class.id).count()
         print(f"Rows in outsourced table db: {count_rows_in_db}")
         count_rows_in_updated_data_source = len(data_frame.index)
         print(
@@ -64,11 +64,12 @@ class Pipeline:
         list = [
             self.data_class(**kwargs) for kwargs in data_frame.to_dict(orient="records")
         ]
-        self.session.add_all(list)
-        self.session.commit()
+        # session.add_all(list)
+        session.bulk_save_objects(list)
+        session.commit()
 
-    def process(self):
+    def process(self, session: Session):
         data_frame = self.extract()
         data_frame = self.transform(data_frame)
-        data_list = self.load(data_frame)
+        data_list = self.load(session, data_frame)
         return data_list

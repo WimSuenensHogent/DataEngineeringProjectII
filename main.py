@@ -48,48 +48,41 @@ def run():
         run_migrations(downgrade_first = (args.migrate == 'downgrade_first'))
 
     # initialize db session
-    with utils.db_session() as session:
-        pipelines = [
-            Pipeline(
-                CovidVaccinationByCategory,
-                path="testdata/cov1.csv",
-                # path="https://epistat.sciensano.be/Data/COVID19BE_VACC.csv",
-                transformer=TransformCovidVaccinationByCategory(),
-                session=session,
-            ),
-            Pipeline(
-                CovidMortality,
-                path="testdata/mort1.csv",
-                # path="https://epistat.sciensano.be/Data/COVID19BE_MORT.csv",
-                transformer=TransformCovidMortality(),
-                session=session,
-            ),
-            Pipeline(
-                CovidConfirmedCases,
-                path="testdata/case1.csv",
-                # path="https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.csv",
-                transformer=TransformCovidConfirmedCases(),
-                session=session,
-            ),
-            Pipeline(
-                RegionDemographics,
-                path="https://statbel.fgov.be/sites/default/files/files/opendata/bevolking%20naar%20woonplaats%2C%20nationaliteit%20burgelijke%20staat%20%2C%20leeftijd%20en%20geslacht/TF_SOC_POP_STRUCT_2021.zip",
-                transformer=TransformDemographicData(),
-                session=session,
-            ),
-            Pipeline(
-                TotalNumberOfDeadsPerRegions,
-                path="https://statbel.fgov.be/sites/default/files/files/opendata/deathday/DEMO_DEATH_OPEN.zip",
-                transformer=TransformTotalNumberOfDeadsPerRegion(),
-                session=session,
-            ),
-        ]
-
-        logger.info("Finsished ETL: {}".format(datetime.now()))
-
-        print("update mort")
-        # except Exception as exception:
-        #     logger.error(exception)
+    pipelines = [
+        Pipeline(
+            CovidVaccinationByCategory,
+            path="testdata/cov1.csv",
+            # path="https://epistat.sciensano.be/Data/COVID19BE_VACC.csv",
+            transformer=TransformCovidVaccinationByCategory(),
+            # session=session,
+        ),
+        Pipeline(
+            CovidMortality,
+            path="testdata/mort1.csv",
+            # path="https://epistat.sciensano.be/Data/COVID19BE_MORT.csv",
+            transformer=TransformCovidMortality(),
+            # session=session,
+        ),
+        Pipeline(
+            CovidConfirmedCases,
+            path="testdata/case1.csv",
+            # path="https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.csv",
+            transformer=TransformCovidConfirmedCases(),
+            # session=session,
+        ),
+        Pipeline(
+            RegionDemographics,
+            path="https://statbel.fgov.be/sites/default/files/files/opendata/bevolking%20naar%20woonplaats%2C%20nationaliteit%20burgelijke%20staat%20%2C%20leeftijd%20en%20geslacht/TF_SOC_POP_STRUCT_2021.zip",
+            transformer=TransformDemographicData(),
+            # session=session,
+        ),
+        Pipeline(
+            TotalNumberOfDeadsPerRegions,
+            path="https://statbel.fgov.be/sites/default/files/files/opendata/deathday/DEMO_DEATH_OPEN.zip",
+            transformer=TransformTotalNumberOfDeadsPerRegion(),
+            # session=session,
+        ),
+    ]
 
     # Als je voor develop purposes enkel bepaalde pipelines wilt importeren kan je indices opgeven
     # a[start:stop]  # items start through stop-1
@@ -97,19 +90,20 @@ def run():
     # a[:stop]  # items from the beginning through stop-1
     # a[:]  # a copy of the whole array
     # proces enkel laatste  pipeline[-1:]
-
     for pipe in pipelines[-1:]:
-        start = time.time()
-        start_string = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(f"Start of migration of model {pipe.data_class.__name__}: {start_string}")
-        pipe.process()
-        end = time.time()
-        end_string = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        elapsed = end - start
-        print(f"End of migration of model {pipe.data_class.__name__}: {end_string}")
-        print(f"Time elapsed: {timedelta(seconds=elapsed)}")
 
-    session.close()
+        with utils.db_session() as session:
+            start = time.time()
+            start_string = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            # print(f"Start of migration of model {pipe.data_class.__name__}: {start_string}")
+            pipe.process(session)
+            end = time.time()
+            end_string = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            elapsed = end - start
+            # print(f"End of migration of model {pipe.data_class.__name__}: {end_string}")
+            # print(f"Time elapsed: {timedelta(seconds=elapsed)}")
+
+        session.close()
 
 
 if __name__ == "__main__":
