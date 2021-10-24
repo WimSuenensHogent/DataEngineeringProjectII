@@ -91,3 +91,17 @@ class RegionDemographics(Base):
     marital_status_name = Column(String, nullable=False)
     age = Column(Integer, nullable=False)
     population = Column(Integer, nullable=False)
+
+
+class TotalNumberOfDeadsPerRegions(Base):
+    __tablename__ = "total_number_of_deads_per_region"
+    id = Column(Integer, primary_key=True, nullable=False)
+    district_niscode = Column(String, nullable=False)
+    province_niscode = Column(String, nullable=False)
+    region_niscode = Column(String, nullable=False)
+    sex = Column(String, nullable=False)
+    agegroup = Column(String, nullable=False)
+    date = Column(Date, nullable=False)
+    year = Column(Integer, nullable=False)
+    weak = Column(String, nullable=False)
+    number_of_deaths = Column(Integer, nullable=False)

@@ -130,3 +130,25 @@ class TransformDemographicData(CommonTransformer):
         year = self.extract_year_from_path(path)
         data_frame["year"] = year
         return data_frame
+
+
+class TransformTotalNumberOfDeadsPerRegion(CommonTransformer):
+    def __init__(self):
+        super().__init__(
+            na_remover=True,
+            column_renamer={
+                "CD_ARR": "district_niscode",
+                "CD_PROV": "province_niscode",
+                "CD_REGIO": "region_niscode",
+                "CD_SEX": "sex",
+                "CD_AGEGROUP": "agegroup",
+                "DT_DATE": "date",
+                "NR_YEAR": "year",
+                "NR_WEEK": "weak",
+                "MS_NUM_DEATH": "number_of_deaths",
+            },
+        )
+
+    def custom_transform(self, df: pd.DataFrame, path):
+        df['date'] = pd.to_datetime(df['date'])
+        return df

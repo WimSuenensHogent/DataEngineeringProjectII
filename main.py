@@ -2,6 +2,7 @@ import argparse
 import logging
 import time
 from datetime import datetime
+from datetime import timedelta
 
 import yaml
 from alembic.config import Config
@@ -13,10 +14,12 @@ from app.etl.transformer import TransformCovidConfirmedCases
 from app.etl.transformer import TransformCovidMortality
 from app.etl.transformer import TransformCovidVaccinationByCategory
 from app.etl.transformer import TransformDemographicData
+from app.etl.transformer import TransformTotalNumberOfDeadsPerRegion
 from app.models.models import CovidConfirmedCases
 from app.models.models import CovidMortality
 from app.models.models import CovidVaccinationByCategory
 from app.models.models import RegionDemographics
+from app.models.models import TotalNumberOfDeadsPerRegions
 from app.tools.logger import get_logger
 
 logger = get_logger(__name__)
@@ -49,7 +52,6 @@ def run():
         )  # doet een downgrade vd db en gooit alles weg
         command.upgrade(alembic_cfg, "head")
 
-        # Pipeline factory maken ?
         pipelines = [
             Pipeline(
                 CovidVaccinationByCategory,
@@ -75,14 +77,17 @@ def run():
             Pipeline(
                 RegionDemographics,
                 path="https://statbel.fgov.be/sites/default/files/files/opendata/bevolking%20naar%20woonplaats%2C%20nationaliteit%20burgelijke%20staat%20%2C%20leeftijd%20en%20geslacht/TF_SOC_POP_STRUCT_2021.zip",
-                # path="https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.csv",
                 transformer=TransformDemographicData(),
+                session=session,
+            ),
+            Pipeline(
+                TotalNumberOfDeadsPerRegions,
+                path="https://statbel.fgov.be/sites/default/files/files/opendata/deathday/DEMO_DEATH_OPEN.zip",
+                transformer=TransformTotalNumberOfDeadsPerRegion(),
                 session=session,
             ),
         ]
 
-        print(datetime.now())
-        print("--- %s minutes ---" % ((time.time() - start_time) / 60))
         logger.info("Finsished ETL: {}".format(datetime.now()))
 
         print("update mort")
@@ -94,10 +99,18 @@ def run():
     # a[start:]  # items start through the rest of the array
     # a[:stop]  # items from the beginning through stop-1
     # a[:]  # a copy of the whole array
-    # proces enkel laatste   pipelines[len(pipelines) - 1:len(pipelines)]:
+    # proces enkel laatste  pipeline[-1:]
 
     for pipe in pipelines[-1:]:
+        start = time.time()
+        start_string = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f"Start of migration of model {pipe.data_class.__name__}: {start_string}")
         pipe.process()
+        end = time.time()
+        end_string = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        elapsed = end - start
+        print(f"End of migration of model {pipe.data_class.__name__}: {end_string}")
+        print(f"Time elapsed: {timedelta(seconds=elapsed)}")
 
 
 if __name__ == "__main__":
