@@ -14,7 +14,7 @@ from app.etl.transformer import TransformCovidMortality
 from app.etl.transformer import TransformCovidVaccinationByCategory
 from app.etl.transformer import TransformDemographicData
 from app.etl.transformer import TransformTotalNumberOfDeadsPerRegion
-from app.models.models import CovidConfirmedCases
+from app.models.models import CovidConfirmedCases, NSI_Code
 from app.models.models import CovidMortality
 from app.models.models import CovidVaccinationByCategory
 from app.models.models import RegionDemographics
@@ -40,7 +40,17 @@ def run_migrations(downgrade_first=False):
         command.upgrade(alembic_cfg, "head")
         session.close()
 
+def temp():
+    nsi_codes_table = NSI_Code.__table__
+    engine = utils.get_db_engine(echo=False)
+    nsi_codes_table.drop(engine, checkfirst=True)
+    nsi_codes_table.create(engine)
+    print(NSI_Code.get_all())
+
 def run():
+    # uncomment if you want the test the NSI_Code insert
+    # temp()
+
     
     logger.debug('Start ETL: %s', format(datetime.now()))
     start_time = time.time()

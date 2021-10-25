@@ -15,9 +15,7 @@ class Pipeline:
         data_class: Base,
         path: str,
         transformer: CommonTransformer,
-        # session: Session,
     ):
-        # self.session = session
         self.data_class = data_class
         self.path = path
         self.transformer = transformer
