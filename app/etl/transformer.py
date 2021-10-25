@@ -187,3 +187,20 @@ class TransformTotalNumberOfVaccinationsPerNICCode(CommonTransformer):
             },
             na_filler=True
         )
+
+class TransformWekelijkseVaccinatiesPerNISCode(CommonTransformer):
+    def __init__(self):
+        super().__init__(
+            na_remover=True,
+            column_renamer={
+                "YEAR_WEEK": "date",
+                "NIS5": "nis_code",
+                "AGEGROUP": "agegroup",
+                "DOSE": "dose",
+                "CUMUL": "cumul_of_week",
+            },
+        )
+
+    def custom_transform(self, df: pd.DataFrame, path):
+        df['date'] = pd.to_datetime(df['date'] + '3', format="%yW%W%w")
+        return df

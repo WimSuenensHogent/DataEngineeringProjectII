@@ -11,12 +11,14 @@ from alembic import command
 
 from app import utils
 from app.etl.pipeline import Pipeline
-from app.etl.transformer import TransformCovidConfirmedCases, TransformTotalNumberOfVaccinationsPerNICCode
+from app.etl.transformer import TransformCovidConfirmedCases, TransformTotalNumberOfVaccinationsPerNICCode, \
+    TransformWekelijkseVaccinatiesPerNISCode
 from app.etl.transformer import TransformCovidMortality
 from app.etl.transformer import TransformCovidVaccinationByCategory
 from app.etl.transformer import TransformDemographicData
 from app.etl.transformer import TransformTotalNumberOfDeadsPerRegion
-from app.models.models import CovidConfirmedCases, NSI_Code, DailyUpdateOnVaccinationNumberPerNISCode
+from app.models.models import CovidConfirmedCases, NSI_Code, DailyUpdateOnVaccinationNumberPerNISCode, \
+    WekelijkseVaccinatiesPerNISCode
 from app.models.models import CovidMortality
 from app.models.models import CovidVaccinationByCategory
 from app.models.models import RegionDemographics
@@ -100,6 +102,12 @@ def run():
             DailyUpdateOnVaccinationNumberPerNISCode,
             path="https://www.laatjevaccineren.be/vaccination-info/get/vaccinaties.csv",
             transformer=TransformTotalNumberOfVaccinationsPerNICCode(),
+            # session=session,
+        ),
+        Pipeline(
+            WekelijkseVaccinatiesPerNISCode,
+            path="https://epistat.sciensano.be/data/COVID19BE_VACC_MUNI_CUM.csv",
+            transformer=TransformWekelijkseVaccinatiesPerNISCode(),
             # session=session,
         )
     ]

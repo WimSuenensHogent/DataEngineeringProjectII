@@ -220,3 +220,15 @@ class DailyUpdateOnVaccinationNumberPerNISCode(Base):
     partly_vaccinated_w_other = Column(Integer, nullable=False)
     population_per_agecategory_of_municipality = Column(Integer, nullable=False)
 
+
+class WekelijkseVaccinatiesPerNISCode(Base):
+    __tablename__ = "weekly_vaccinations_update_by_nic_code"
+
+    id = Column(Integer, primary_key=True, nullable=False)
+    date = Column(Date, nullable=False)
+    nis_code = Column(Integer, nullable=False)
+    agegroup = Column(String, nullable=False)
+    dose = Column(String, nullable=False)
+    cumul_of_week = Column(String, nullable=False)
+
+
