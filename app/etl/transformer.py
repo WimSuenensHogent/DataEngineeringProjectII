@@ -157,3 +157,33 @@ class TransformTotalNumberOfDeadsPerRegion(CommonTransformer):
     def custom_transform(self, df: pd.DataFrame, path):
         df['date'] = pd.to_datetime(df['date'])
         return df
+
+class TransformTotalNumberOfVaccinationsPerNICCode(CommonTransformer):
+    def __init__(self):
+        super().__init__(
+            na_remover=False,
+            column_renamer={
+                "NIS_CD": "nis_code",
+                "GENDER_CD": "sex",
+                "AGE_CD": "agegroup",
+                "ADULT_FL(18+)": "plus18",
+                "SENIOR_FL(65+)": "plus65",
+                "MUNICIPALITY": "municipality",
+                "PROVINCE": "province",
+                "REGION": "region",
+                "EERSTELIJNSZONE": "eerstelijnzone",
+                "FULLY_VACCINATED_AMT": "fully_vaccinated_in_total",
+                "PARTLY_VACCINATED_AMT": "partly_vaccinated_in_total",
+                "FULLY_VACCINATED_AZ_AMT": "fully_vaccinated_w_astrazeneca",
+                "PARTLY_VACCINATED_AZ_AMT": "partly_vaccinated_w_astrazeneca",
+                "FULLY_VACCINATED_PF_AMT": "fully_vaccinated_w_pfizer",
+                "PARTLY_VACCINATED_PF_AMT": "partly_vaccinated_w_pfizer",
+                "FULLY_VACCINATED_MO_AMT": "fully_vaccinated_w_moderna",
+                "PARTLY_VACCINATED_MO_AMT": "partly_vaccinated_w_moderna",
+                "FULLY_VACCINATED_JJ_AMT": "fully_vaccinated_w_jj",
+                "FULLY_VACCINATED_OTHER_AMT": "fully_vaccinated_w_other",
+                "PARTLY_VACCINATED_OTHER_AMT": "partly_vaccinated_w_other",
+                "POPULATION_NBR": "population_per_agecategory_of_municipality",
+            },
+            na_filler=True
+        )

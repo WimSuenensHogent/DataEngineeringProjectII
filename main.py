@@ -2,6 +2,8 @@ import argparse
 import time
 from datetime import datetime
 from datetime import timedelta
+import ssl
+
 
 from dotenv import load_dotenv
 from alembic.config import Config
@@ -9,12 +11,12 @@ from alembic import command
 
 from app import utils
 from app.etl.pipeline import Pipeline
-from app.etl.transformer import TransformCovidConfirmedCases
+from app.etl.transformer import TransformCovidConfirmedCases, TransformTotalNumberOfVaccinationsPerNICCode
 from app.etl.transformer import TransformCovidMortality
 from app.etl.transformer import TransformCovidVaccinationByCategory
 from app.etl.transformer import TransformDemographicData
 from app.etl.transformer import TransformTotalNumberOfDeadsPerRegion
-from app.models.models import CovidConfirmedCases, NSI_Code
+from app.models.models import CovidConfirmedCases, NSI_Code, DailyUpdateOnVaccinationNumberPerNISCode
 from app.models.models import CovidMortality
 from app.models.models import CovidVaccinationByCategory
 from app.models.models import RegionDemographics
@@ -22,6 +24,7 @@ from app.models.models import TotalNumberOfDeadsPerRegions
 from app.tools.logger import get_logger
 from app.utils import printProgressBar
 
+ssl._create_default_https_context = ssl._create_unverified_context
 load_dotenv()
 logger = get_logger(__name__)
 
@@ -56,7 +59,7 @@ def run():
     start_time = time.time()
 
     if (args.migrate):
-        run_migrations(downgrade_first = (args.migrate == 'downgrade_first'))
+        run_migrations(downgrade_first=(args.migrate == 'downgrade_first'))
 
     # initialize db session
     pipelines = [
@@ -93,6 +96,12 @@ def run():
             transformer=TransformTotalNumberOfDeadsPerRegion(),
             # session=session,
         ),
+        Pipeline(
+            DailyUpdateOnVaccinationNumberPerNISCode,
+            path="https://www.laatjevaccineren.be/vaccination-info/get/vaccinaties.csv",
+            transformer=TransformTotalNumberOfVaccinationsPerNICCode(),
+            # session=session,
+        )
     ]
 
     # Als je voor develop purposes enkel bepaalde pipelines wilt importeren kan je indices opgeven

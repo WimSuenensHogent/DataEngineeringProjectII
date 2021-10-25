@@ -3,6 +3,8 @@
 Returns:
     [type]: [description]
 """
+import os
+
 import numpy as np
 import pandas as pd
 from datetime import datetime, date
@@ -23,16 +25,16 @@ class NSI_Code(Base):
     text_nl = Column(String(255))
     text_fr = Column(String(255))
     text_de = Column(String(255))
-    valid_from = Column(Date, primary_key=True)
+    valid_from = Column(Date, nullable=True)
     valid_till = Column(Date, nullable=True)
     
     children = relationship("NSI_Code",
         lazy='select',                    
         backref=backref('parent', remote_side=[nsi])
     )
-    
+
     __table_args__ = (
-        CheckConstraint('length(nsi) == 5', name='nsi_length'),
+        CheckConstraint('LEN(nsi)=5' if (os.environ.get('DATABASE_URL')) else 'length(nsi) == 5'),
     )
     
     def __repr__(self):
@@ -96,6 +98,7 @@ class NSI_Code(Base):
             session.commit()
             session.close()
         return objects_list
+
 class CovidVaccinationByCategory(Base):
     __tablename__ = "covid_vaccinations_by_category"
     id = Column(Integer, primary_key=True, nullable=False)
@@ -189,3 +192,31 @@ class TotalNumberOfDeadsPerRegions(Base):
     year = Column(Integer, nullable=False)
     weak = Column(String, nullable=False)
     number_of_deaths = Column(Integer, nullable=False)
+
+
+class DailyUpdateOnVaccinationNumberPerNISCode(Base):
+    __tablename__ = "daily_update_on_vaccinations_per_nis_code"
+
+    id = Column(Integer, primary_key=True, nullable=False)
+    nis_code = Column(Integer, nullable=False)
+    sex = Column(String, nullable=False)
+    agegroup = Column(String, nullable=False)
+    plus18 = Column(Integer, nullable=False)
+    plus65 = Column(Integer, nullable=False)
+    municipality = Column(String, nullable=False)
+    province = Column(String, nullable=False)
+    region = Column(String, nullable=False)
+    eerstelijnzone = Column(String, nullable=False)
+    fully_vaccinated_in_total = Column(Integer, nullable=False)
+    partly_vaccinated_in_total = Column(Integer, nullable=False)
+    fully_vaccinated_w_astrazeneca = Column(Integer, nullable=False)
+    partly_vaccinated_w_astrazeneca = Column(Integer, nullable=False)
+    fully_vaccinated_w_pfizer = Column(Integer, nullable=False)
+    partly_vaccinated_w_pfizer = Column(Integer, nullable=False)
+    fully_vaccinated_w_moderna = Column(Integer, nullable=False)
+    partly_vaccinated_w_moderna = Column(Integer, nullable=False)
+    fully_vaccinated_w_jj = Column(Integer, nullable=False)
+    fully_vaccinated_w_other = Column(Integer, nullable=False)
+    partly_vaccinated_w_other = Column(Integer, nullable=False)
+    population_per_agecategory_of_municipality = Column(Integer, nullable=False)
+
