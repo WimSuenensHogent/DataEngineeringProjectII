@@ -32,7 +32,7 @@ class NSI_Code(Base):
     )
     
     __table_args__ = (
-        CheckConstraint('length(nsi) = 5', name='nsi_length'),
+        CheckConstraint('length(nsi) == 5', name='nsi_length'),
     )
     
     def __repr__(self):
