@@ -13,9 +13,7 @@ class Pipeline:
         data_class: Base,
         path: str,
         transformer: CommonTransformer,
-        # session: Session,
     ):
-        # self.session = session
         self.data_class = data_class
         self.path = path
         self.transformer = transformer
@@ -71,5 +69,4 @@ class Pipeline:
     def process(self, session: Session):
         data_frame = self.extract()
         data_frame = self.transform(data_frame)
-        data_list = self.load(session, data_frame)
-        return data_list
+        return self.load(session, data_frame)
