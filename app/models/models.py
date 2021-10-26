@@ -8,6 +8,8 @@ import os
 import numpy as np
 import pandas as pd
 from datetime import datetime, date
+
+from pandas.core.series import Series
 from app.utils import db_session
 from sqlalchemy.orm import declarative_base, relationship, backref, validates
 from sqlalchemy.sql.sqltypes import Date, Integer, String
@@ -15,7 +17,6 @@ from sqlalchemy.sql.schema import CheckConstraint, Column, ForeignKey
 # https://docs.sqlalchemy.org/en/14/orm/self_referential.html
 
 Base = declarative_base()
-
 class NSI_Code(Base):
     __tablename__ = 'dim_nsi_codes'
     
@@ -28,13 +29,14 @@ class NSI_Code(Base):
     valid_from = Column(Date, nullable=True)
     valid_till = Column(Date, nullable=True)
     
-    children = relationship("NSI_Code",
+    children = relationship(
+        "NSI_Code",
         lazy='select',                    
         backref=backref('parent', remote_side=[nsi])
     )
 
-    __table_args__ = (
-        CheckConstraint('LEN(nsi)=5' if (os.environ.get('DATABASE_URL')) else 'length(nsi) == 5'),
+    __table_args__ = tuple(
+        CheckConstraint('LEN(nsi)=5') if (os.environ.get('DATABASE_URL')) else CheckConstraint('length(nsi)==5')
     )
     
     def __repr__(self):
@@ -68,6 +70,7 @@ class NSI_Code(Base):
         
         # transform
         data_frame['CD_REFNIS'] = data_frame['CD_REFNIS'].apply(lambda x: '{0:0>5}'.format(x))
+        data_frame['CD_SUP_REFNIS'] = data_frame['CD_SUP_REFNIS'].apply(lambda x: x if (len(x) == 5) else None)
         data_frame["DT_VLDT_START"] = np.where(
             data_frame['DT_VLDT_START'] == '01/01/1970',
             date.min,
@@ -78,6 +81,7 @@ class NSI_Code(Base):
             date.max,
             data_frame['DT_VLDT_END'].apply(lambda x: datetime.strptime(x, '%d/%m/%Y').date())
         )
+        data_frame = data_frame[(data_frame["DT_VLDT_END"] == date.max)]
         data_frame.rename(columns={
             "LVL_REFNIS": "level",
             "CD_REFNIS": "nsi",
@@ -91,7 +95,7 @@ class NSI_Code(Base):
 
         # load
         objects_list = [
-            cls(**kwargs) for kwargs in data_frame.to_dict(orient="records")
+            cls(**kwargs) for kwargs in (data_frame).to_dict(orient="records")
         ]
         with db_session(echo=False) as session:
             session.bulk_save_objects(objects_list)

@@ -1,4 +1,5 @@
 import argparse
+import os
 import time
 from datetime import datetime
 from datetime import timedelta
@@ -17,7 +18,7 @@ from app.etl.transformer import TransformCovidMortality
 from app.etl.transformer import TransformCovidVaccinationByCategory
 from app.etl.transformer import TransformDemographicData
 from app.etl.transformer import TransformTotalNumberOfDeadsPerRegion
-from app.models.models import CovidConfirmedCases, NSI_Code, DailyUpdateOnVaccinationNumberPerNISCode, \
+from app.models.models import Base, CovidConfirmedCases, NSI_Code, DailyUpdateOnVaccinationNumberPerNISCode, \
     WekelijkseVaccinatiesPerNISCode
 from app.models.models import CovidMortality
 from app.models.models import CovidVaccinationByCategory
@@ -47,16 +48,16 @@ def run_migrations(downgrade_first=False):
 
 def temp():
     nsi_codes_table = NSI_Code.__table__
-    engine = utils.get_db_engine(echo=False)
+    engine = utils.get_db_engine(echo=True)
     nsi_codes_table.drop(engine, checkfirst=True)
     nsi_codes_table.create(engine)
     print(NSI_Code.get_all())
 
 def run():
     # uncomment if you want the test the NSI_Code insert
-    # temp()
+    temp()
+    return
 
-    
     logger.debug('Start ETL: %s', format(datetime.now()))
     start_time = time.time()
 
