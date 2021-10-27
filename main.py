@@ -55,8 +55,8 @@ def temp():
 
 def run():
     # uncomment if you want the test the NSI_Code insert
-    temp()
-    return
+    #temp()
+    #return
 
     logger.debug('Start ETL: %s', format(datetime.now()))
     start_time = time.time()
