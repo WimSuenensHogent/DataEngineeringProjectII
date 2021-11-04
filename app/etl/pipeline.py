@@ -1,3 +1,6 @@
+import datetime
+from datetime import date
+
 import pandas as pd
 from sqlalchemy import inspect
 
@@ -5,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.etl.transformer import CommonTransformer
 from app.exceptions import IncorrectDataSourcePath
-from app.models.models import Base
+from app.models.models import Base, LastPipeLineProcessing
 from app.utils import get_db_engine
 
 
@@ -15,11 +18,12 @@ class Pipeline:
         data_class: Base,
         path: str,
         transformer: CommonTransformer,
+        isLast: bool
     ):
         self.data_class = data_class
         self.path = path
         self.transformer = transformer
-
+        self.isLast = isLast
     def extract(self):
         """Haalt data op van url
 
@@ -77,20 +81,37 @@ class Pipeline:
         session.commit()
 
     def compare_outsourced_and_local_db_and_append_if_changed(self, data_frame: pd.DataFrame, session: Session):
-        count_rows_in_db = session.query(self.data_class.id).count()
-        print(f"Rows in local table {self.data_class.__tablename__} db: {count_rows_in_db}")
-        count_rows_in_updated_data_source = len(data_frame.index)
-        print(f"Rows in outsourced table {self.data_class.__tablename__} db: {count_rows_in_updated_data_source}")
-        if count_rows_in_updated_data_source > count_rows_in_db:
-            print(">>> Cutting data")
-            data_frame = data_frame.iloc[
-                         count_rows_in_updated_data_source
-                         - (count_rows_in_updated_data_source - count_rows_in_db):
-                         ]
-            self.add_all_and_commit(data_frame, session)
+        last_date_processing = session.query(LastPipeLineProcessing).get(1) #last processing of data
+        now_date_processing = date.today() # + datetime.timedelta(days=16) #for test
+        print(f">>>>>>>>>> Last processing date?: {last_date_processing.date}")
+        print(f">>>>>>>>>> Last pipeline?: {self.isLast}")
+        if last_date_processing:
+            if 'date' in data_frame:
+                print(f">>> last_date_processing: {last_date_processing.date}")
+                print(f">>> todays date: {now_date_processing}")
+                print(f">>> Date in data frame: {data_frame['date'][0]}")
+                data_frame = data_frame[~(pd.to_datetime(data_frame['date']) <= pd.to_datetime(last_date_processing.date))] # drop all data below last day when the data was processed
+                print(f">>> last_date_processing is updated to: {now_date_processing}")
+                self.add_all_and_commit(data_frame, session)  # add full data
+            else:
+                count_rows_in_db = session.query(self.data_class.id).count()
+                print(f"Rows in local table {self.data_class.__tablename__} db: {count_rows_in_db}")
+                count_rows_in_updated_data_source = len(data_frame.index)
+                print(
+                    f"Rows in outsourced table {self.data_class.__tablename__} db: {count_rows_in_updated_data_source}")
+                if count_rows_in_updated_data_source > count_rows_in_db:
+                    print(">>> Cutting data")
+                    data_frame = data_frame.iloc[
+                                 count_rows_in_updated_data_source
+                                 - (count_rows_in_updated_data_source - count_rows_in_db):
+                                 ]
+                    self.add_all_and_commit(data_frame, session)  # add full data
         else:
-            print(">>> NO changes, NO action")
-            pass
-
+            print(f"Adding all data")
+            self.add_all_and_commit(data_frame, session) #add full data
+        if self.isLast:
+            print(f">>>>>>>>>>>>> now merging date of last processing time")
+            session.merge(LastPipeLineProcessing(id=1, date=now_date_processing))  # update last date processing
+            # only when processing last pipeline, if next pipeline contains 'date', it will be skipped because of last_processing_date already exists
 
 

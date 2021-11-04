@@ -237,3 +237,9 @@ class WekelijkseVaccinatiesPerNISCode(Base):
     cumul_of_week = Column(String, nullable=False)
 
 
+class LastPipeLineProcessing(Base):
+    __tablename__ = "meta_last_processing_date"
+    
+    id = Column(Integer, primary_key=True, nullable=False)
+    date = Column(Date, nullable=False)
+

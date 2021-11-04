@@ -1,3 +1,4 @@
+import datetime
 from abc import ABC
 
 import pandas as pd
@@ -189,7 +190,7 @@ class TransformTotalNumberOfVaccinationsPerNICCode(CommonTransformer):
         )
 
     def custom_transform(self, df: pd.DataFrame, path):
-        df.insert(loc=0, column='date', value=pd.to_datetime('today').date())
+        df.insert(loc=0, column='date', value=pd.to_datetime('today').date()) # (+ datetime.timedelta(days=1) this + is #for test)
         return df
 
 class TransformWekelijkseVaccinatiesPerNISCode(CommonTransformer):
@@ -197,6 +198,7 @@ class TransformWekelijkseVaccinatiesPerNISCode(CommonTransformer):
         super().__init__(
             na_remover=True,
             column_renamer={
+                "YEAR_WEEK": "date",
                 "YEAR_WEEK": "date",
                 "NIS5": "nis_code",
                 "AGEGROUP": "agegroup",
@@ -208,3 +210,9 @@ class TransformWekelijkseVaccinatiesPerNISCode(CommonTransformer):
     def custom_transform(self, df: pd.DataFrame, path):
         df['date'] = pd.to_datetime(df['date'] + '3', format="%yW%W%w")
         return df
+
+class TransformLastProcessing(CommonTransformer):
+    def __init__(self):
+        super().__init__(
+
+        )
