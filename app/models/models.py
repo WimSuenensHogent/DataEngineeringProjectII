@@ -202,6 +202,7 @@ class DailyUpdateOnVaccinationNumberPerNISCode(Base):
     __tablename__ = "daily_update_on_vaccinations_per_nis_code"
 
     id = Column(Integer, primary_key=True, nullable=False)
+    date = Column(Date, nullable=False)
     nis_code = Column(Integer, nullable=False)
     sex = Column(String, nullable=False)
     agegroup = Column(String, nullable=False)

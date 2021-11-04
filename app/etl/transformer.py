@@ -188,6 +188,10 @@ class TransformTotalNumberOfVaccinationsPerNICCode(CommonTransformer):
             na_filler=True
         )
 
+    def custom_transform(self, df: pd.DataFrame, path):
+        df.insert(loc=0, column='date', value=pd.to_datetime('today').date())
+        return df
+
 class TransformWekelijkseVaccinatiesPerNISCode(CommonTransformer):
     def __init__(self):
         super().__init__(
