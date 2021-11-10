@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: CronWorkflow
+metadata:
+  name: etl-cron-workflow
+  namespace: argo
+spec:
+  schedule: "0 * * * *"
+  concurrencyPolicy: "Forbid"
+  startingDeadlineSeconds: 70
+  workflowSpec:
+    entrypoint: dag-template
+    serviceAccountName: argo
+    templates:
+    - name: dag-template
+      dag:
+        tasks:
+        - name: etl-process
+          template: task-template
+    - name: task-template
+      script:
+        image: wimsuenenshogent/covid-etl:0.1
+        imagePullPolicy: Always
+        command: [bash]
+        source: |
+          python /code/main.py
+        env:
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: etl-secrets
+              key: username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: etl-secrets
+              key: password

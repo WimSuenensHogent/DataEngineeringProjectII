@@ -55,9 +55,7 @@ def temp():
 
 def run():
     # uncomment if you want the test the NSI_Code insert
-    temp()
-    return
-
+    return temp()
     logger.debug('Start ETL: %s', format(datetime.now()))
     start_time = time.time()
 
@@ -73,44 +71,44 @@ def run():
             transformer=TransformCovidVaccinationByCategory(),
             # session=session,
         ),
-        Pipeline(
-            CovidMortality,
-            #path="testdata/mort1.csv",
-            path="https://epistat.sciensano.be/Data/COVID19BE_MORT.csv",
-            transformer=TransformCovidMortality(),
-            # session=session,
-        ),
-        Pipeline(
-            CovidConfirmedCases,
-            #path="testdata/case1.csv",
-            path="https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.csv",
-            transformer=TransformCovidConfirmedCases(),
-            # session=session,
-        ),
-        Pipeline(
-            RegionDemographics,
-            path="https://statbel.fgov.be/sites/default/files/files/opendata/bevolking%20naar%20woonplaats%2C%20nationaliteit%20burgelijke%20staat%20%2C%20leeftijd%20en%20geslacht/TF_SOC_POP_STRUCT_2021.zip",
-            transformer=TransformDemographicData(),
-            # session=session,
-        ),
-        Pipeline(
-            TotalNumberOfDeadsPerRegions,
-            path="https://statbel.fgov.be/sites/default/files/files/opendata/deathday/DEMO_DEATH_OPEN.zip",
-            transformer=TransformTotalNumberOfDeadsPerRegion(),
-            # session=session,
-        ),
-        Pipeline(
-            DailyUpdateOnVaccinationNumberPerNISCode,
-            path="https://www.laatjevaccineren.be/vaccination-info/get/vaccinaties.csv",
-            transformer=TransformTotalNumberOfVaccinationsPerNICCode(),
-            # session=session,
-        ),
-        Pipeline(
-            WekelijkseVaccinatiesPerNISCode,
-            path="https://epistat.sciensano.be/data/COVID19BE_VACC_MUNI_CUM.csv",
-            transformer=TransformWekelijkseVaccinatiesPerNISCode(),
-            # session=session,
-        )
+        # Pipeline(
+        #     CovidMortality,
+        #     #path="testdata/mort1.csv",
+        #     path="https://epistat.sciensano.be/Data/COVID19BE_MORT.csv",
+        #     transformer=TransformCovidMortality(),
+        #     # session=session,
+        # ),
+        # Pipeline(
+        #     CovidConfirmedCases,
+        #     #path="testdata/case1.csv",
+        #     path="https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.csv",
+        #     transformer=TransformCovidConfirmedCases(),
+        #     # session=session,
+        # ),
+        # Pipeline(
+        #     RegionDemographics,
+        #     path="https://statbel.fgov.be/sites/default/files/files/opendata/bevolking%20naar%20woonplaats%2C%20nationaliteit%20burgelijke%20staat%20%2C%20leeftijd%20en%20geslacht/TF_SOC_POP_STRUCT_2021.zip",
+        #     transformer=TransformDemographicData(),
+        #     # session=session,
+        # ),
+        # Pipeline(
+        #     TotalNumberOfDeadsPerRegions,
+        #     path="https://statbel.fgov.be/sites/default/files/files/opendata/deathday/DEMO_DEATH_OPEN.zip",
+        #     transformer=TransformTotalNumberOfDeadsPerRegion(),
+        #     # session=session,
+        # ),
+        # Pipeline(
+        #     DailyUpdateOnVaccinationNumberPerNISCode,
+        #     path="https://www.laatjevaccineren.be/vaccination-info/get/vaccinaties.csv",
+        #     transformer=TransformTotalNumberOfVaccinationsPerNICCode(),
+        #     # session=session,
+        # ),
+        # Pipeline(
+        #     WekelijkseVaccinatiesPerNISCode,
+        #     path="https://epistat.sciensano.be/data/COVID19BE_VACC_MUNI_CUM.csv",
+        #     transformer=TransformWekelijkseVaccinatiesPerNISCode(),
+        #     # session=session,
+        # )
     ]
 
     # Als je voor develop purposes enkel bepaalde pipelines wilt importeren kan je indices opgeven
