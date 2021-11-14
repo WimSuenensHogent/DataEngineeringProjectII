@@ -10,58 +10,77 @@ import pandas as pd
 from datetime import datetime, date
 
 from pandas.core.series import Series
+from app.models.base import Base
 from app.utils import db_session
 from sqlalchemy.orm import declarative_base, relationship, backref, validates
 from sqlalchemy.sql.sqltypes import Date, Integer, String
 from sqlalchemy.sql.schema import CheckConstraint, Column, ForeignKey
 # https://docs.sqlalchemy.org/en/14/orm/self_referential.html
 
-Base = declarative_base()
-class NSI_Code(Base):
-    __tablename__ = 'dim_nsi_codes'
+class NIS_Code(Base):
+    __tablename__ = 'dim_nis_codes'
     
-    nsi = Column(String(5), primary_key=True)
-    parent_nsi = Column(String(5), ForeignKey('dim_nsi_codes.nsi'), nullable=True)
+    nis = Column(String(5), primary_key=True)
+    # parent_nis = Column(String(5), ForeignKey('dim_nis_codes.nis'), nullable=True)
+    parent_nis = Column(String(5), nullable=True)
     level = Column(Integer, nullable=False)
     text_nl = Column(String(255))
     text_fr = Column(String(255))
     text_de = Column(String(255))
-    valid_from = Column(Date, nullable=True)
-    valid_till = Column(Date, nullable=True)
+    valid_from = Column(Date, primary_key=True)
+    valid_till = Column(Date, nullable=False)
     
-    children = relationship(
-        "NSI_Code",
-        lazy='select',                    
-        backref=backref('parent', remote_side=[nsi])
-    )
+    # children = relationship(
+    #     "NIS_Code",
+    #     lazy='select',                    
+    #     backref=backref('parent', remote_side=[nis])
+    # )
 
     __table_args__ = tuple(
-        CheckConstraint('LEN(nsi)=5') if (os.environ.get('DATABASE_URL')) else CheckConstraint('length(nsi)==5')
+        (
+            CheckConstraint('LEN(nis)=5'),
+            CheckConstraint('LEN(parent_nis)=5')
+        ) if (
+            os.environ.get('DATABASE_URL')
+        ) else (
+            CheckConstraint('length(nis)==5'),
+            CheckConstraint('length(parent_nis)==5')
+        ),
     )
     
     def __repr__(self):
         return """
-            <NSI_Code(level='%s', nsi='%s', name='%s', parent='%s')>
+            <NIS_Code(level='%s', nis='%s', name='%s', parent='%s')>
             """ % (
             self.level,
-            self.nsi,
+            self.nis,
             self.text_nl,
-            self.parent_nsi
+            self.parent_nis
         )
 
-    @validates('nsi')
-    def validate_nsi(self, key, nsi) -> str:
-        if len(nsi) != 5:
-            raise ValueError("'nsi' should be 5 characters long..")
-        return nsi
+    @validates('nis')
+    def validate_nis(self, key, nis) -> str:
+        if len(nis) != 5:
+            raise ValueError("'nis' should be 5 characters long..")
+        return nis
     
+    @validates('parent_nis')
+    def validate_parent_nis(self, key, parent_nis) -> str:
+        if (not parent_nis):
+            return parent_nis
+        if len(parent_nis) != 5:
+            raise ValueError("'parent_nis' should be 5 characters long..")
+        return parent_nis
+
     @classmethod
     def get_all(cls):
         with db_session(echo=False) as session:
-            local_nsi_codes_all = session.query(NSI_Code).all()
+            local_nis_codes_all = session.query(NIS_Code).all()
             session.close()
-            if (len(local_nsi_codes_all)):
-                return local_nsi_codes_all
+            return local_nis_codes_all
+
+            if (len(local_nis_codes_all)):
+                return local_nis_codes_all
 
         # extract
         # https://statbel.fgov.be/sites/default/files/files/opendata/REFNIS%20code/TU_COM_REFNIS.xlsx
@@ -84,8 +103,8 @@ class NSI_Code(Base):
         data_frame = data_frame[(data_frame["DT_VLDT_END"] == date.max)]
         data_frame.rename(columns={
             "LVL_REFNIS": "level",
-            "CD_REFNIS": "nsi",
-            "CD_SUP_REFNIS": "parent_nsi",
+            "CD_REFNIS": "nis",
+            "CD_SUP_REFNIS": "parent_nis",
             "TX_REFNIS_NL": "text_nl",
             "TX_REFNIS_FR": "text_fr",
             "TX_REFNIS_DE": "text_de",
@@ -104,19 +123,19 @@ class NSI_Code(Base):
         return objects_list
 
 class CovidVaccinationByCategory(Base):
-    __tablename__ = "covid_vaccinations_by_category"
-    id = Column(Integer, primary_key=True, nullable=False)
-    date = Column(Date, nullable=False)
-    region = Column(String, nullable=False)
-    agegroup = Column(String, nullable=False)
-    sex = Column(String, nullable=False)
-    brand = Column(String, nullable=False)
-    dose = Column(String, nullable=False)
+    __tablename__ = "fact_covid_vaccinations_by_category"
+    # id = Column(Integer, primary_key=True, nullable=False)
+    date = Column(Date, primary_key=True, nullable=False)
+    region = Column(String, primary_key=True, nullable=False)
+    agegroup = Column(String, primary_key=True, nullable=False)
+    sex = Column(String, primary_key=True, nullable=False)
+    brand = Column(String, primary_key=True, nullable=False)
+    dose = Column(String, primary_key=True, nullable=False)
     count = Column(Integer, nullable=False)
 
     def __repr__(self):
         return """
-            <BelgiumVacinationByCategory(date='%s', region='%s', agegroup='%s')>
+            <CovidVaccinationByCategory(date='%s', region='%s', agegroup='%s')>
             """ % (
             self.date,
             self.region,
@@ -124,38 +143,36 @@ class CovidVaccinationByCategory(Base):
         )
 
 
-class CovidMortality(Base):
-    __tablename__ = "covid_mortality"
-    id = Column(Integer, primary_key=True, nullable=False)
-    date = Column(Date, nullable=False)
-    region = Column(String, nullable=False)
-    agegroup = Column(String, nullable=False)
-    sex = Column(String, nullable=False)
+class CovidMortalityByCategory(Base):
+    __tablename__ = "fact_covid_mortality_by_category"
+    # id = Column(Integer, primary_key=True, nullable=False)
+    date = Column(Date, primary_key=True)
+    region = Column(String, primary_key=True)
+    agegroup = Column(String, primary_key=True)
+    sex = Column(String, primary_key=True)
     deaths = Column(Integer, nullable=False)
 
     def __repr__(self):
         return """
-            <BelgiumCovidMortality(date='%s', region='%s', agegroup='%s')>
+            <CovidMortalityByCategory(date='%s', region='%s', agegroup='%s')>
             """ % (
             self.date,
             self.region,
             self.agegroup,
         )
-
-
-class CovidConfirmedCases(Base):
-    __tablename__ = "covid_confirmed_cases"
-    id = Column(Integer, primary_key=True, nullable=False)
-    date = Column(Date, nullable=False)
-    province = Column(String, nullable=False)
-    region = Column(String, nullable=False)
-    agegroup = Column(String, nullable=False)
-    sex = Column(String, nullable=False)
+class CovidConfirmedCasesByCategory(Base):
+    __tablename__ = "fact_covid_confirmed_cases_by_category"
+    # id = Column(Integer, primary_key=True, nullable=False)
+    date = Column(Date, primary_key=True)
+    province = Column(String, primary_key=True)
+    region = Column(String, primary_key=True)
+    agegroup = Column(String, primary_key=True)
+    sex = Column(String, primary_key=True)
     cases = Column(Integer, nullable=False)
 
     def __repr__(self):
         return """
-            <BelgiumCovidConfirmedCases(date='%s', region='%s', agegroup='%s')>
+            <CovidConfirmedCasesByCategory(date='%s', region='%s', agegroup='%s')>
             """ % (
             self.date,
             self.region,
@@ -163,83 +180,83 @@ class CovidConfirmedCases(Base):
         )
 
 
-class RegionDemographics(Base):
-    __tablename__ = "region_demographics"
-    id = Column(Integer, primary_key=True, nullable=False)
-    year = Column(Integer, nullable=True)
-    municipality_niscode = Column(Integer, nullable=True)
-    municipality_name = Column(String, nullable=True)
-    district_niscode = Column(Integer, nullable=True)
-    district_name = Column(String, nullable=True)
-    province_niscode = Column(Integer, nullable=True)
-    province_name = Column(String, nullable=True)
-    region_niscode = Column(Integer, nullable=True)
-    region_name = Column(String, nullable=True)
-    sex = Column(String, nullable=True)
-    nationality_code = Column(String, nullable=True)
-    nationality_name = Column(String, nullable=True)
-    marital_status_code = Column(String, nullable=True)
-    marital_status_name = Column(String, nullable=True)
-    age = Column(Integer, nullable=True)
-    population = Column(Integer, nullable=True)
+# class RegionDemographics(Base):
+#     __tablename__ = "region_demographics"
+#     id = Column(Integer, primary_key=True, nullable=False)
+#     year = Column(Integer, nullable=True)
+#     municipality_niscode = Column(Integer, nullable=True)
+#     municipality_name = Column(String, nullable=True)
+#     district_niscode = Column(Integer, nullable=True)
+#     district_name = Column(String, nullable=True)
+#     province_niscode = Column(Integer, nullable=True)
+#     province_name = Column(String, nullable=True)
+#     region_niscode = Column(Integer, nullable=True)
+#     region_name = Column(String, nullable=True)
+#     sex = Column(String, nullable=True)
+#     nationality_code = Column(String, nullable=True)
+#     nationality_name = Column(String, nullable=True)
+#     marital_status_code = Column(String, nullable=True)
+#     marital_status_name = Column(String, nullable=True)
+#     age = Column(Integer, nullable=True)
+#     population = Column(Integer, nullable=True)
 
 
-class TotalNumberOfDeadsPerRegions(Base):
-    __tablename__ = "total_number_of_deads_per_region"
-    id = Column(Integer, primary_key=True, nullable=False)
-    district_niscode = Column(String, nullable=False)
-    province_niscode = Column(String, nullable=False)
-    region_niscode = Column(String, nullable=False)
-    sex = Column(String, nullable=False)
-    agegroup = Column(String, nullable=False)
-    date = Column(Date, nullable=False)
-    year = Column(Integer, nullable=False)
-    weak = Column(String, nullable=False)
-    number_of_deaths = Column(Integer, nullable=False)
+# class TotalNumberOfDeadsPerRegions(Base):
+#     __tablename__ = "total_number_of_deads_per_region"
+#     id = Column(Integer, primary_key=True, nullable=False)
+#     district_niscode = Column(String, nullable=False)
+#     province_niscode = Column(String, nullable=False)
+#     region_niscode = Column(String, nullable=False)
+#     sex = Column(String, nullable=False)
+#     agegroup = Column(String, nullable=False)
+#     date = Column(Date, nullable=False)
+#     year = Column(Integer, nullable=False)
+#     weak = Column(String, nullable=False)
+#     number_of_deaths = Column(Integer, nullable=False)
 
 
-class DailyUpdateOnVaccinationNumberPerNISCode(Base):
-    __tablename__ = "daily_update_on_vaccinations_per_nis_code"
+# class DailyUpdateOnVaccinationNumberPerNISCode(Base):
+#     __tablename__ = "daily_update_on_vaccinations_per_nis_code"
 
-    id = Column(Integer, primary_key=True, nullable=False)
-    date = Column(Date, nullable=False)
-    nis_code = Column(Integer, nullable=False)
-    sex = Column(String, nullable=False)
-    agegroup = Column(String, nullable=False)
-    plus18 = Column(Integer, nullable=False)
-    plus65 = Column(Integer, nullable=False)
-    municipality = Column(String, nullable=False)
-    province = Column(String, nullable=False)
-    region = Column(String, nullable=False)
-    eerstelijnzone = Column(String, nullable=False)
-    fully_vaccinated_in_total = Column(Integer, nullable=False)
-    partly_vaccinated_in_total = Column(Integer, nullable=False)
-    fully_vaccinated_w_astrazeneca = Column(Integer, nullable=False)
-    partly_vaccinated_w_astrazeneca = Column(Integer, nullable=False)
-    fully_vaccinated_w_pfizer = Column(Integer, nullable=False)
-    partly_vaccinated_w_pfizer = Column(Integer, nullable=False)
-    fully_vaccinated_w_moderna = Column(Integer, nullable=False)
-    partly_vaccinated_w_moderna = Column(Integer, nullable=False)
-    fully_vaccinated_w_jj = Column(Integer, nullable=False)
-    fully_vaccinated_w_other = Column(Integer, nullable=False)
-    partly_vaccinated_w_other = Column(Integer, nullable=False)
-    population_per_agecategory_of_municipality = Column(Integer, nullable=False)
-
-
-class WekelijkseVaccinatiesPerNISCode(Base):
-    __tablename__ = "weekly_vaccinations_update_by_nic_code"
-
-    id = Column(Integer, primary_key=True, nullable=False)
-    date = Column(Date, nullable=False)
-    nis_code = Column(Integer, nullable=False)
-    agegroup = Column(String, nullable=False)
-    dose = Column(String, nullable=False)
-    cumul_of_week = Column(String, nullable=False)
+#     id = Column(Integer, primary_key=True, nullable=False)
+#     date = Column(Date, nullable=False)
+#     nis_code = Column(Integer, nullable=False)
+#     sex = Column(String, nullable=False)
+#     agegroup = Column(String, nullable=False)
+#     plus18 = Column(Integer, nullable=False)
+#     plus65 = Column(Integer, nullable=False)
+#     municipality = Column(String, nullable=False)
+#     province = Column(String, nullable=False)
+#     region = Column(String, nullable=False)
+#     eerstelijnzone = Column(String, nullable=False)
+#     fully_vaccinated_in_total = Column(Integer, nullable=False)
+#     partly_vaccinated_in_total = Column(Integer, nullable=False)
+#     fully_vaccinated_w_astrazeneca = Column(Integer, nullable=False)
+#     partly_vaccinated_w_astrazeneca = Column(Integer, nullable=False)
+#     fully_vaccinated_w_pfizer = Column(Integer, nullable=False)
+#     partly_vaccinated_w_pfizer = Column(Integer, nullable=False)
+#     fully_vaccinated_w_moderna = Column(Integer, nullable=False)
+#     partly_vaccinated_w_moderna = Column(Integer, nullable=False)
+#     fully_vaccinated_w_jj = Column(Integer, nullable=False)
+#     fully_vaccinated_w_other = Column(Integer, nullable=False)
+#     partly_vaccinated_w_other = Column(Integer, nullable=False)
+#     population_per_agecategory_of_municipality = Column(Integer, nullable=False)
 
 
-class LastPipeLineProcessing(Base):
-    __tablename__ = "meta_last_processing_date"
+# class WekelijkseVaccinatiesPerNISCode(Base):
+#     __tablename__ = "weekly_vaccinations_update_by_nic_code"
+
+#     id = Column(Integer, primary_key=True, nullable=False)
+#     date = Column(Date, nullable=False)
+#     nis_code = Column(Integer, nullable=False)
+#     agegroup = Column(String, nullable=False)
+#     dose = Column(String, nullable=False)
+#     cumul_of_week = Column(String, nullable=False)
+
+
+# class LastPipeLineProcessing(Base):
+#     __tablename__ = "meta_last_processing_date"
     
-    id = Column(Integer, primary_key=True, nullable=False)
-    date = Column(Date, nullable=False)
+#     id = Column(Integer, primary_key=True, nullable=False)
+#     date = Column(Date, nullable=False)
 

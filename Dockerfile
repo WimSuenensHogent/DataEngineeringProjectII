@@ -23,7 +23,6 @@ WORKDIR /code
 COPY app ./app
 COPY alembic ./alembic
 COPY alembic.ini ./alembic.ini
-COPY settings.py ./settings.py
 COPY settings.yaml ./settings.yaml
 COPY Pipfile ./Pipfile
 COPY Pipfile.lock ./Pipfile.lock

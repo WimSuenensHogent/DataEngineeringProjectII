@@ -1,0 +1,40 @@
+{
+  "pipelines": [
+    {
+      "source": "https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.csv",
+      "model": "CovidConfirmedCasesByCategory",
+      "metadata_handler": {
+        "frequency": "daily",
+        "date_column": "date"
+      },
+      "tranforms": [
+        {
+          "type": "rename_columns",
+          "data": {
+            "columns": {
+              "DATE": "date",
+              "PROVINCE": "province",
+              "REGION": "region",
+              "AGEGROUP": "agegroup",
+              "SEX": "sex",
+              "CASES": "cases"
+            }
+          }
+        },
+        {
+          "type": "drop_na"
+        },
+        {
+          "type": "update_value",
+          "data": {
+            "column": "date",
+            "update": {
+              "type": "date",
+              "format": "%Y-%m-%d"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

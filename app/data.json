@@ -1,0 +1,198 @@
+{
+  "pipelines": [
+    {
+      "source": "https://statbel.fgov.be/sites/default/files/files/opendata/REFNIS%20code/TU_COM_REFNIS.zip",
+      "model": "NIS_Code",
+      "metadata_handler": {
+        "frequency": "yearly",
+        "full_refresh": true
+      },
+      "tranforms": [
+        {
+          "type": "rename_columns",
+          "data": {
+            "columns": {
+              "LVL_REFNIS": "level",
+              "CD_REFNIS": "nis",
+              "CD_SUP_REFNIS": "parent_nis",
+              "TX_REFNIS_NL": "text_nl",
+              "TX_REFNIS_FR": "text_fr",
+              "TX_REFNIS_DE": "text_de",
+              "DT_VLDT_START": "valid_from",
+              "DT_VLDT_END": "valid_till"
+            }
+          }
+        },
+        {
+          "type": "update_value",
+          "data": {
+            "column": "nis",
+            "update": {
+              "type": "string",
+              "format": "{0:0>5}"
+            }
+          }
+        },
+        {
+          "type": "update_value",
+          "data": {
+            "column": "parent_nis",
+            "current_value": "-",
+            "value_if_true": {
+              "type": "string",
+              "value": ""
+            }
+          }
+        },
+        {
+          "type": "update_value",
+          "data": {
+            "column": "parent_nis",
+            "update": {
+              "type": "string",
+              "format": "{0:0>5}"
+            }
+          }
+        },
+        {
+          "type": "update_value",
+          "data": {
+            "column": "valid_from",
+            "current_value": "01/01/1970",
+            "value_if_true": {
+                "type": "date",
+                "value": "date.min"
+            },
+            "value_if_false": {
+                "type": "date",
+                "format": "%d/%m/%Y"
+            }
+          }        
+        },
+        {
+          "type": "update_value",
+          "data": {
+            "column": "valid_till",
+            "current_value": "31/12/9999",
+            "value_if_true": {
+                "type": "date",
+                "value": "date.max"
+            },
+            "value_if_false": {
+                "type": "date",
+                "format": "%d/%m/%Y"
+            }
+          }        
+        }
+      ]
+    },
+    {
+      "source": "https://epistat.sciensano.be/Data/COVID19BE_VACC.csv",
+      "model": "CovidVaccinationByCategory",
+      "metadata_handler": {
+        "frequency": "daily",
+        "date_column": "date"
+      },
+      "tranforms": [
+        {
+          "type": "rename_columns",
+          "data": {
+            "columns": {
+              "DATE": "date",
+              "REGION": "region",
+              "AGEGROUP": "agegroup",
+              "SEX": "sex",
+              "BRAND": "brand",
+              "DOSE": "dose",
+              "COUNT": "count"
+            }
+          }
+        },
+        {
+          "type": "drop_na"
+        },
+        {
+          "type": "update_value",
+          "data": {
+            "column": "date",
+            "update": {
+              "type": "date",
+              "format": "%Y-%m-%d"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "source": "https://epistat.sciensano.be/Data/COVID19BE_MORT.csv",
+      "model": "CovidMortalityByCategory",
+      "metadata_handler": {
+        "frequency": "daily",
+        "date_column": "date"
+      },
+      "tranforms": [
+        {
+          "type": "rename_columns",
+          "data": {
+            "columns": {
+              "DATE": "date",
+              "REGION": "region",
+              "AGEGROUP": "agegroup",
+              "SEX": "sex",
+              "DEATHS": "deaths"
+            }
+          }
+        },
+        {
+          "type": "drop_na"
+        },
+        {
+          "type": "update_value",
+          "data": {
+            "column": "date",
+            "update": {
+              "type": "date",
+              "format": "%Y-%m-%d"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "source": "https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.csv",
+      "model": "CovidConfirmedCasesByCategory",
+      "metadata_handler": {
+        "frequency": "daily",
+        "date_column": "date"
+      },
+      "tranforms": [
+        {
+          "type": "rename_columns",
+          "data": {
+            "columns": {
+              "DATE": "date",
+              "PROVINCE": "province",
+              "REGION": "region",
+              "AGEGROUP": "agegroup",
+              "SEX": "sex",
+              "CASES": "cases"
+            }
+          }
+        },
+        {
+          "type": "drop_na"
+        },
+        {
+          "type": "update_value",
+          "data": {
+            "column": "date",
+            "update": {
+              "type": "date",
+              "format": "%Y-%m-%d"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

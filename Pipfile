@@ -14,6 +14,7 @@ pyodbc = "*"
 alembic = "*"
 pre-commit = "*"
 python-dotenv = "*"
+pytz = "*"
 
 [dev-packages]
 pylint = "*"

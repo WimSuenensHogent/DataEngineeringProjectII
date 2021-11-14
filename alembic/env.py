@@ -6,7 +6,9 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import create_engine
 from sqlalchemy import pool
 
-from app.models.models import Base
+from app.models.base import Base
+from app.models import models
+from app.models import metadata
 from app.utils import get_db_engine, get_db_url
 
 sys.path.append(os.getcwd())
@@ -27,6 +29,8 @@ fileConfig(config.config_file_name)
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
+# target_metadata = [Base.metadata]
+# target_metadata = [Base.metadata, metadata.Base.metadata, models.Base.metadata]
 
 
 # other values from the config, defined by the needs of env.py,
@@ -49,6 +53,8 @@ def run_migrations_offline():
     """
     # url = config.get_main_option("sqlalchemy.url")
     url = get_db_url()
+    print("get_db_url")
+    print(url)
     # url = os.environ.get('DATABASE_URL') or 'sqlite:///database.sqlite'
     context.configure(
         url=url,

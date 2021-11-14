@@ -1,8 +1,88 @@
-import datetime
+from datetime import date, datetime
 from abc import ABC
+import numpy as np
 
 import pandas as pd
 
+def get_lambda_to_apply(data=None):
+
+    lambda_to_apply = lambda x: x
+    if (not data):
+        return lambda_to_apply
+
+    data_type = data["type"]
+
+    if("value" in dict.keys(data)):
+        data_value = data["value"]
+        
+        lambda_to_apply = lambda x: data_value
+
+        if (data_type == "date"):
+            if (data_value == "date.max"):
+                return lambda x: date.max
+            if (data_value == "date.min"):
+                return lambda x: date.min
+        
+        return lambda_to_apply
+
+    if("format" in dict.keys(data)):
+        format = data["format"]
+        if (data_type == "date"):
+            return lambda x: datetime.strptime(x, format).date()
+        if (data_type == "string"):
+            return lambda x: (format).format(x)
+
+
+    return lambda_to_apply
+
+class Transformer():
+    def __init__(self, transforms):
+        self.transforms = transforms
+    
+    def transform(self, data_frame: pd.DataFrame):
+        for transform in self.transforms:
+            if "data" in dict.keys(transform):
+                data = transform["data"]
+            data_frame = getattr(self, transform["type"])(data_frame, data)
+        return data_frame
+
+    def drop_columns(self, data_frame, data_transform):
+        columns = data_transform["columns"]
+        data_frame.drop(columns, axis=1, inplace=True)
+        return data_frame
+
+    def rename_columns(self, data_frame, data_transform):
+        columns = data_transform["columns"]
+        data_frame.rename(columns=columns, inplace=True)
+        return data_frame
+    
+    def drop_na(self, data_frame, data_transform):
+        data_frame.dropna(inplace=True)
+        return data_frame
+    
+    def update_value(self, data_frame, data_transform):
+        column = data_transform["column"]
+
+        if ("update" in dict.keys(data_transform)):
+            lambda_update = get_lambda_to_apply(data_transform["update"])
+            data_frame[column] = data_frame[column].apply(lambda_update)
+            return data_frame
+
+        current_value = data_transform["current_value"]
+
+        lambda_if_true = get_lambda_to_apply()
+        if("value_if_true" in dict.keys(data_transform)):
+            lambda_if_true = get_lambda_to_apply(data_transform["value_if_true"])
+        lambda_if_false = get_lambda_to_apply()
+        if("value_if_false" in dict.keys(data_transform)):
+            lambda_if_false = get_lambda_to_apply(data_transform["value_if_false"])
+
+        data_frame[column] = np.where(
+            data_frame[column] == current_value,
+            data_frame[column].apply(lambda_if_true),
+            data_frame[column].apply(lambda_if_false)
+        )
+        return data_frame
 
 class CommonTransformer(ABC):
     def __init__(
@@ -55,49 +135,49 @@ class CommonTransformer(ABC):
         return path.split(".")[-2][-4:]
 
 
-class TransformCovidVaccinationByCategory(CommonTransformer):
-    def __init__(self):
-        super().__init__(
-            na_remover=True,
-            column_renamer={
-                "DATE": "date",
-                "REGION": "region",
-                "AGEGROUP": "agegroup",
-                "SEX": "sex",
-                "BRAND": "brand",
-                "DOSE": "dose",
-                "COUNT": "count",
-            },
-        )
+# class TransformCovidVaccinationByCategory(CommonTransformer):
+#     def __init__(self):
+#         super().__init__(
+#             na_remover=True,
+#             column_renamer={
+#                 "DATE": "date",
+#                 "REGION": "region",
+#                 "AGEGROUP": "agegroup",
+#                 "SEX": "sex",
+#                 "BRAND": "brand",
+#                 "DOSE": "dose",
+#                 "COUNT": "count",
+#             },
+#         )
 
 
-class TransformCovidMortality(CommonTransformer):
-    def __init__(self):
-        super().__init__(
-            na_remover=True,
-            column_renamer={
-                "DATE": "date",
-                "REGION": "region",
-                "AGEGROUP": "agegroup",
-                "SEX": "sex",
-                "DEATHS": "deaths",
-            },
-        )
+# class TransformCovidMortality(CommonTransformer):
+#     def __init__(self):
+#         super().__init__(
+#             na_remover=True,
+#             column_renamer={
+#                 "DATE": "date",
+#                 "REGION": "region",
+#                 "AGEGROUP": "agegroup",
+#                 "SEX": "sex",
+#                 "DEATHS": "deaths",
+#             },
+#         )
 
 
-class TransformCovidConfirmedCases(CommonTransformer):
-    def __init__(self):
-        super().__init__(
-            na_remover=True,
-            column_renamer={
-                "DATE": "date",
-                "PROVINCE": "province",
-                "REGION": "region",
-                "AGEGROUP": "agegroup",
-                "SEX": "sex",
-                "CASES": "cases",
-            },
-        )
+# class TransformCovidConfirmedCases(CommonTransformer):
+#     def __init__(self):
+#         super().__init__(
+#             na_remover=True,
+#             column_renamer={
+#                 "DATE": "date",
+#                 "PROVINCE": "province",
+#                 "REGION": "region",
+#                 "AGEGROUP": "agegroup",
+#                 "SEX": "sex",
+#                 "CASES": "cases",
+#             },
+#         )
 
 
 class TransformDemographicData(CommonTransformer):

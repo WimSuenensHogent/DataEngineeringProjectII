@@ -9,7 +9,7 @@ import os
 
 import yaml
 
-from settings import BASE_DIR
+from app.settings import BASE_DIR
 
 
 # class Logger(logging.Handler):
