@@ -8,8 +8,8 @@ from app.settings import BASE_DIR
 
 def run():
   with open(
-    # os.path.join(BASE_DIR, "app/data.json"), mode="r", encoding="UTF-8"
-    os.path.join(BASE_DIR, "app/data_test.json"), mode="r", encoding="UTF-8"
+    os.path.join(BASE_DIR, "app/data.json"), mode="r", encoding="UTF-8"
+    # os.path.join(BASE_DIR, "app/data_test.json"), mode="r", encoding="UTF-8"
   ) as file:
     data = json.load(file)
     for pl in data['pipelines']:
