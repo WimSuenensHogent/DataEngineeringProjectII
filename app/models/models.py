@@ -5,16 +5,11 @@ Returns:
 """
 import os
 
-import numpy as np
-import pandas as pd
-from datetime import datetime, date
-
-from pandas.core.series import Series
 from app.models.base import Base
 from app.utils import db_session
-from sqlalchemy.orm import declarative_base, relationship, backref, validates
+from sqlalchemy.orm import validates
 from sqlalchemy.sql.sqltypes import Boolean, Date, Integer, String
-from sqlalchemy.sql.schema import CheckConstraint, Column, ForeignKey
+from sqlalchemy.sql.schema import CheckConstraint, Column
 # https://docs.sqlalchemy.org/en/14/orm/self_referential.html
 
 class NIS_Code(Base):
@@ -78,53 +73,9 @@ class NIS_Code(Base):
             local_nis_codes_all = session.query(NIS_Code).all()
             session.close()
             return local_nis_codes_all
-
-            if (len(local_nis_codes_all)):
-                return local_nis_codes_all
-
-        # extract
-        # https://statbel.fgov.be/sites/default/files/files/opendata/REFNIS%20code/TU_COM_REFNIS.xlsx
-        zip_url = "https://statbel.fgov.be/sites/default/files/files/opendata/REFNIS%20code/TU_COM_REFNIS.zip"
-        data_frame = pd.read_csv(zip_url, delimiter="|")
-        
-        # transform
-        data_frame['CD_REFNIS'] = data_frame['CD_REFNIS'].apply(lambda x: '{0:0>5}'.format(x))
-        data_frame['CD_SUP_REFNIS'] = data_frame['CD_SUP_REFNIS'].apply(lambda x: x if (len(x) == 5) else None)
-        data_frame["DT_VLDT_START"] = np.where(
-            data_frame['DT_VLDT_START'] == '01/01/1970',
-            date.min,
-            data_frame['DT_VLDT_START'].apply(lambda x: datetime.strptime(x, '%d/%m/%Y').date())
-        )
-        data_frame["DT_VLDT_END"] = np.where(
-            data_frame['DT_VLDT_END'] == '31/12/9999',
-            date.max,
-            data_frame['DT_VLDT_END'].apply(lambda x: datetime.strptime(x, '%d/%m/%Y').date())
-        )
-        data_frame = data_frame[(data_frame["DT_VLDT_END"] == date.max)]
-        data_frame.rename(columns={
-            "LVL_REFNIS": "level",
-            "CD_REFNIS": "nis",
-            "CD_SUP_REFNIS": "parent_nis",
-            "TX_REFNIS_NL": "text_nl",
-            "TX_REFNIS_FR": "text_fr",
-            "TX_REFNIS_DE": "text_de",
-            "DT_VLDT_START": "valid_from",
-            "DT_VLDT_END": "valid_till",
-        }, inplace=True)
-
-        # load
-        objects_list = [
-            cls(**kwargs) for kwargs in (data_frame).to_dict(orient="records")
-        ]
-        with db_session(echo=False) as session:
-            session.bulk_save_objects(objects_list)
-            session.commit()
-            session.close()
-        return objects_list
-
 class CovidVaccinationByCategory(Base):
     __tablename__ = "fact_covid_vaccinations_by_category"
-    # id = Column(Integer, primary_key=True, nullable=False)
+
     date = Column(Date, primary_key=True, nullable=False)
     region = Column(String, primary_key=True, nullable=False)
     agegroup = Column(String, primary_key=True, nullable=False)
@@ -145,7 +96,7 @@ class CovidVaccinationByCategory(Base):
 
 class CovidMortalityByCategory(Base):
     __tablename__ = "fact_covid_mortality_by_category"
-    # id = Column(Integer, primary_key=True, nullable=False)
+
     date = Column(Date, primary_key=True)
     region = Column(String, primary_key=True)
     agegroup = Column(String, primary_key=True)
@@ -162,7 +113,7 @@ class CovidMortalityByCategory(Base):
         )
 class CovidConfirmedCasesByCategory(Base):
     __tablename__ = "fact_covid_confirmed_cases_by_category"
-    # id = Column(Integer, primary_key=True, nullable=False)
+
     date = Column(Date, primary_key=True)
     province = Column(String, primary_key=True)
     region = Column(String, primary_key=True)
@@ -182,7 +133,6 @@ class CovidConfirmedCasesByCategory(Base):
 class DemographicsByNISCodeAndCategory(Base):
     __tablename__ = "fact_demographics_by_nis_code_and_category"
 
-    # id = Column(Integer, primary_key=True, nullable=False)
     year = Column(Integer, primary_key=True)
     nis = Column(Integer, primary_key=True)
     sex = Column(String, primary_key=True)
@@ -198,10 +148,8 @@ class DemographicsByNISCodeAndCategory(Base):
 
 class NumberOfDeathsByDistrictNISCode(Base):
     __tablename__ = "fact_number_of_deaths_by_district_nis_code"
-    # id = Column(Integer, primary_key=True, nullable=False)
+
     date = Column(Date, primary_key=True)
-    # year = Column(Integer, primary_key=True)
-    # week = Column(String, primary_key=True)
     nis_district = Column(String, primary_key=True)
     sex = Column(String, primary_key=True)
     agegroup = Column(String, primary_key=True)
@@ -211,8 +159,6 @@ class NumberOfDeathsByDistrictNISCode(Base):
 class VaccinationsByNISCodeDailyUpdated(Base):
     __tablename__ = "fact_vaccinations_by_nis_code_daily_updated"
 
-    # id = Column(Integer, primary_key=True, nullable=False)
-    # date = Column(Date, nullable=False)
     nis_code = Column(String(5), primary_key=True)
     sex = Column(String, primary_key=True)
     agegroup = Column(String, primary_key=True)
@@ -230,22 +176,28 @@ class VaccinationsByNISCodeDailyUpdated(Base):
     vaccinated_fully_other = Column(Integer, nullable=False)
     vaccinated_partly_other = Column(Integer, nullable=False)
     population_by_agecategory_and_municipality = Column(Integer, nullable=False)
+class VaccinationsByNISCodeAndWeek(Base):
+    __tablename__ = "fact_vaccinations_by_nis_code_and_week"
 
+    date = Column(Date, primary_key=True)
+    year = Column(Integer, primary_key=True)
+    week = Column(Integer, primary_key=True)
+    nis_code = Column(String(5), primary_key=True)
+    agegroup = Column(String(5), primary_key=True)
+    dose = Column(String(5), primary_key=True)
+    cumul_of_week = Column(Integer, nullable=False)
 
-# class WekelijkseVaccinatiesPerNISCode(Base):
-#     __tablename__ = "weekly_vaccinations_update_by_nic_code"
+    __table_args__ = tuple(
+        (
+            (CheckConstraint('LEN(nis_code)=5'),
+        ) if (os.environ.get('DATABASE_URL')) else (
+            CheckConstraint('length(nis_code)==5')),
+        )
+    )
 
-#     id = Column(Integer, primary_key=True, nullable=False)
-#     date = Column(Date, nullable=False)
-#     nis_code = Column(Integer, nullable=False)
-#     agegroup = Column(String, nullable=False)
-#     dose = Column(String, nullable=False)
-#     cumul_of_week = Column(String, nullable=False)
-
-
-# class LastPipeLineProcessing(Base):
-#     __tablename__ = "meta_last_processing_date"
-    
-#     id = Column(Integer, primary_key=True, nullable=False)
-#     date = Column(Date, nullable=False)
+    @validates('nis_code')
+    def validate_nis_code(self, key, nis_code) -> str:
+        if len(nis_code) != 5:
+            raise ValueError("'nis_code' should be 5 characters long..")
+        return nis_code
 

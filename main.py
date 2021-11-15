@@ -16,24 +16,6 @@ logger = get_logger(__name__)
 def run():
     return _app.run()
 
-    # initialize db session
-    # pipelines = [
-    #     Pipeline(
-    #         DailyUpdateOnVaccinationNumberPerNISCode,
-    #         path="https://www.laatjevaccineren.be/vaccination-info/get/vaccinaties.csv",
-    #         #path="testdata/test.csv",
-    #         transformer=TransformTotalNumberOfVaccinationsPerNICCode(),
-    #         # session=session,
-    #         isLast=True
-    #     ),
-    #     Pipeline(
-    #         WekelijkseVaccinatiesPerNISCode,
-    #         path="https://epistat.sciensano.be/data/COVID19BE_VACC_MUNI_CUM.csv",
-    #         transformer=TransformWekelijkseVaccinatiesPerNISCode(),
-    #         # session=session,
-    #     )
-    # ]
-
 def run_migrations(downgrade_first=False):
     # run db migrations
     with utils.db_session() as session:
@@ -47,7 +29,6 @@ def run_migrations(downgrade_first=False):
             )  # doet een downgrade vd db en gooit alles weg
 
         command.upgrade(alembic_cfg, "head")
-        print("upgraded..")
         session.close()
 
 if __name__ == "__main__":

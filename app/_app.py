@@ -13,19 +13,24 @@ def run():
   ) as file:
     data = json.load(file)
     for pl in data['pipelines']:
-      data_class=getattr(models, pl["model"])
-      metadata_handler=None
-      if "metadata_handler" in dict.keys(pl):
-        metadata_handler = pl["metadata_handler"]
-      pipeline = Pipeline(
-        data_class,
-        path=pl["source"],
-        transformer=Transformer(pl["tranforms"]),
-        metadata_handler=metadata_handler
-      )
-      # data_frame = pipeline.extract()
-      # data_frame = pipeline.transform(data_frame)
-      # data_frame = pipeline.handle_metadata(data_frame)
-      # print(data_frame)
-      data_list = pipeline.process()
-      print(data_list)
+      try:
+        data_class=getattr(models, pl["model"])
+        metadata_handler=None
+        if "metadata_handler" in dict.keys(pl):
+          metadata_handler = pl["metadata_handler"]
+        pipeline = Pipeline(
+          data_class,
+          path=pl["source"],
+          transformer=Transformer(pl["tranforms"]),
+          metadata_handler=metadata_handler
+        )
+        data_list = pipeline.process()
+        # TODO: Handle by logger
+        print("Finished pipeline '{table}' : {length} lines added to the database".format(
+          table=data_class.__tablename__,
+          length=len(data_list)
+        ))
+      except:
+        # TODO: Handle by logger
+        print("Something went wrong...")
+        print(pl)
