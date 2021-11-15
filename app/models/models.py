@@ -13,7 +13,7 @@ from pandas.core.series import Series
 from app.models.base import Base
 from app.utils import db_session
 from sqlalchemy.orm import declarative_base, relationship, backref, validates
-from sqlalchemy.sql.sqltypes import Date, Integer, String
+from sqlalchemy.sql.sqltypes import Boolean, Date, Integer, String
 from sqlalchemy.sql.schema import CheckConstraint, Column, ForeignKey
 # https://docs.sqlalchemy.org/en/14/orm/self_referential.html
 
@@ -208,32 +208,28 @@ class NumberOfDeathsByDistrictNISCode(Base):
     number_of_deaths = Column(Integer, nullable=False)
 
 
-# class DailyUpdateOnVaccinationNumberPerNISCode(Base):
-#     __tablename__ = "daily_update_on_vaccinations_per_nis_code"
+class VaccinationsByNISCodeDailyUpdated(Base):
+    __tablename__ = "fact_vaccinations_by_nis_code_daily_updated"
 
-#     id = Column(Integer, primary_key=True, nullable=False)
-#     date = Column(Date, nullable=False)
-#     nis_code = Column(Integer, nullable=False)
-#     sex = Column(String, nullable=False)
-#     agegroup = Column(String, nullable=False)
-#     plus18 = Column(Integer, nullable=False)
-#     plus65 = Column(Integer, nullable=False)
-#     municipality = Column(String, nullable=False)
-#     province = Column(String, nullable=False)
-#     region = Column(String, nullable=False)
-#     eerstelijnzone = Column(String, nullable=False)
-#     fully_vaccinated_in_total = Column(Integer, nullable=False)
-#     partly_vaccinated_in_total = Column(Integer, nullable=False)
-#     fully_vaccinated_w_astrazeneca = Column(Integer, nullable=False)
-#     partly_vaccinated_w_astrazeneca = Column(Integer, nullable=False)
-#     fully_vaccinated_w_pfizer = Column(Integer, nullable=False)
-#     partly_vaccinated_w_pfizer = Column(Integer, nullable=False)
-#     fully_vaccinated_w_moderna = Column(Integer, nullable=False)
-#     partly_vaccinated_w_moderna = Column(Integer, nullable=False)
-#     fully_vaccinated_w_jj = Column(Integer, nullable=False)
-#     fully_vaccinated_w_other = Column(Integer, nullable=False)
-#     partly_vaccinated_w_other = Column(Integer, nullable=False)
-#     population_per_agecategory_of_municipality = Column(Integer, nullable=False)
+    # id = Column(Integer, primary_key=True, nullable=False)
+    # date = Column(Date, nullable=False)
+    nis_code = Column(String(5), primary_key=True)
+    sex = Column(String, primary_key=True)
+    agegroup = Column(String, primary_key=True)
+    plus18 = Column(Boolean, primary_key=True)
+    plus65 = Column(Boolean, primary_key=True)
+    vaccinated_fully_total = Column(Integer, nullable=False)
+    vaccinated_partly_total = Column(Integer, nullable=False)
+    vaccinated_fully_astrazeneca = Column(Integer, nullable=False)
+    vaccinated_partly_astrazeneca = Column(Integer, nullable=False)
+    vaccinated_fully_pfizer = Column(Integer, nullable=False)
+    vaccinated_partly_pfizer = Column(Integer, nullable=False)
+    vaccinated_fully_moderna = Column(Integer, nullable=False)
+    vaccinated_partly_moderna = Column(Integer, nullable=False)
+    vaccinated_fully_johnsonandjohnson = Column(Integer, nullable=False)
+    vaccinated_fully_other = Column(Integer, nullable=False)
+    vaccinated_partly_other = Column(Integer, nullable=False)
+    population_by_agecategory_and_municipality = Column(Integer, nullable=False)
 
 
 # class WekelijkseVaccinatiesPerNISCode(Base):

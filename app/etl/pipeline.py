@@ -1,4 +1,5 @@
 from datetime import date, datetime, timedelta
+import os
 from pytz import timezone
 
 import pandas as pd
@@ -45,7 +46,17 @@ class Pipeline:
                     if (etl_metadata):
                         if(etl_metadata.last_date_processed >= datetime.now(timezone('Europe/Brussels')).date().replace(month=1, day=1)):
                             return pd.DataFrame()
-        
+                if(frequency == "yearly"):
+                    if("full_refresh" in dict.keys(self.metadata_handler)):
+                        full_refresh = self.metadata_handler["full_refresh"]
+                        if (full_refresh):
+                            with db_session(echo=False) as session:
+                                etl_metadata = session.query(ETL_Metadata).filter((ETL_Metadata.table == (self.data_class).__tablename__)).first()
+                                session.close()
+                            if (etl_metadata):
+                                if(etl_metadata.last_date_processed >= datetime.now(timezone('Europe/Brussels')).date()):
+                                    return pd.DataFrame()
+
         if ".csv" in self.path:
             data_frame = pd.read_csv(self.path)
         elif ".xlsx" in self.path:
@@ -83,6 +94,10 @@ class Pipeline:
             frequency = self.metadata_handler["frequency"]
             if (frequency != "daily"):
                 self.last_date_processed = datetime.now(timezone('Europe/Brussels')).date()
+            if ("full_refresh" in dict.keys(self.metadata_handler)):
+                full_refresh = self.metadata_handler["full_refresh"]
+                if (full_refresh):
+                    self.last_date_processed = datetime.now(timezone('Europe/Brussels')).date()
         # used for testing...
         # days_to_extract = 30
         # today = datetime.now(timezone('Europe/Brussels')).date()
@@ -113,11 +128,27 @@ class Pipeline:
             self.data_class(**kwargs) for kwargs in data_frame.to_dict(orient="records")
         ]
         last_date_processed = self.last_date_processed
+
+        truncate_table=False
         if (self.metadata_handler):
             if ("date_column" in dict.keys(self.metadata_handler)):
                 date_column = self.metadata_handler["date_column"]
                 last_date_processed = (data_frame[date_column]).max()
+            if ("full_refresh" in dict.keys(self.metadata_handler)):
+                full_refresh = self.metadata_handler["full_refresh"]
+                if(full_refresh):
+                    truncate_table=True
         with db_session() as session:
+            if(truncate_table):
+                print(('trunctate {table}').format(table=(self.data_class).__tablename__))
+                session.execute(
+                    (
+                        ('''TRUNCATE TABLE {table}''').format(table=(self.data_class).__tablename__)
+                    ) if (os.environ.get('DATABASE_URL')) else (
+                        ('''DELETE FROM {table}''').format(table=(self.data_class).__tablename__)
+                    )
+                )
+                # session.commit()
             etl_metadata = session.query(ETL_Metadata).filter((ETL_Metadata.table == (self.data_class).__tablename__)).first()
             if (etl_metadata):
                 etl_metadata.last_date_processed = last_date_processed
