@@ -267,6 +267,63 @@
           }
         }
       ]
+    },
+    {
+      "source": "https://statbel.fgov.be/sites/default/files/files/opendata/deathday/DEMO_DEATH_OPEN.zip",
+      "model": "NumberOfDeathsByDistrictNISCode",
+      "metadata_handler": {
+        "frequency": "daily",
+        "date_column": "date"
+      },
+      "tranforms": [
+        {
+          "type": "drop_columns",
+          "data": {
+            "columns": [
+              "CD_PROV",
+              "CD_REGIO",
+              "NR_YEAR",
+              "NR_WEEK"
+            ]
+          }
+        },
+        {
+          "type": "rename_columns",
+          "data": {
+            "columns": {
+              "CD_ARR": "nis_district",
+              "CD_SEX": "sex",
+              "CD_AGEGROUP": "agegroup",
+              "DT_DATE": "date",
+              "MS_NUM_DEATH": "number_of_deaths"
+            }
+          }
+        },
+        {
+          "type": "update_value",
+          "data": {
+            "column": "date",
+            "update": {
+              "type": "date",
+              "format": "%d/%m/%Y"
+            }
+          }
+        },
+        {
+          "type": "group_by",
+          "data": {
+            "columns": [
+              "date",
+              "nis_district",
+              "sex",
+              "agegroup"
+            ],
+            "aggregate": {
+              "type": "sum"
+            }
+          }
+        }
+      ]
     }
   ]
 }

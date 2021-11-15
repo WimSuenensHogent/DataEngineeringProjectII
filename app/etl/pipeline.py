@@ -153,6 +153,7 @@ class Pipeline:
         data_frame = self.extract()
         data_frame = self.transform(data_frame)
         data_frame = self.handle_metadata(data_frame)
+        print(data_frame)
         data_list = self.load(data_frame)
         return data_list
 

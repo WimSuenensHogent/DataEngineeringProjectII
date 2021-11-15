@@ -19,19 +19,6 @@ def run():
     # initialize db session
     # pipelines = [
     #     Pipeline(
-    #         RegionDemographics,
-    #         path="https://statbel.fgov.be/sites/default/files/files/opendata/bevolking%20naar%20woonplaats%2C%20nationaliteit%20burgelijke%20staat%20%2C%20leeftijd%20en%20geslacht/TF_SOC_POP_STRUCT_2021.zip",
-    #         transformer=TransformDemographicData(),
-    #         # session=session,
-    #         isLast=False
-    #     ),
-    #     Pipeline(
-    #         TotalNumberOfDeadsPerRegions,
-    #         path="https://statbel.fgov.be/sites/default/files/files/opendata/deathday/DEMO_DEATH_OPEN.zip",
-    #         transformer=TransformTotalNumberOfDeadsPerRegion(),
-    #         # session=session,
-    #     ),
-    #     Pipeline(
     #         DailyUpdateOnVaccinationNumberPerNISCode,
     #         path="https://www.laatjevaccineren.be/vaccination-info/get/vaccinaties.csv",
     #         #path="testdata/test.csv",

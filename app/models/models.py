@@ -196,18 +196,16 @@ class DemographicsByNISCodeAndCategory(Base):
     population = Column(Integer)
 
 
-# class TotalNumberOfDeadsPerRegions(Base):
-#     __tablename__ = "total_number_of_deads_per_region"
-#     id = Column(Integer, primary_key=True, nullable=False)
-#     district_niscode = Column(String, nullable=False)
-#     province_niscode = Column(String, nullable=False)
-#     region_niscode = Column(String, nullable=False)
-#     sex = Column(String, nullable=False)
-#     agegroup = Column(String, nullable=False)
-#     date = Column(Date, nullable=False)
-#     year = Column(Integer, nullable=False)
-#     weak = Column(String, nullable=False)
-#     number_of_deaths = Column(Integer, nullable=False)
+class NumberOfDeathsByDistrictNISCode(Base):
+    __tablename__ = "fact_number_of_deaths_by_district_nis_code"
+    # id = Column(Integer, primary_key=True, nullable=False)
+    date = Column(Date, primary_key=True)
+    # year = Column(Integer, primary_key=True)
+    # week = Column(String, primary_key=True)
+    nis_district = Column(String, primary_key=True)
+    sex = Column(String, primary_key=True)
+    agegroup = Column(String, primary_key=True)
+    number_of_deaths = Column(Integer, nullable=False)
 
 
 # class DailyUpdateOnVaccinationNumberPerNISCode(Base):

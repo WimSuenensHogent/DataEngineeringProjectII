@@ -111,6 +111,15 @@ class Transformer():
             data_frame = groupedby.sum().reset_index()
 
         return data_frame
+    
+    def split_column(self, data_frame, data_transform):
+        column = data_transform["column"]
+        new_columns = data_transform["new_columns"]
+        delimiter = data_transform["delimiter"]
+
+        data_frame[new_columns] = data_frame[column].str.split(delimiter, expand=True)
+
+        return data_frame
 class CommonTransformer(ABC):
     def __init__(
         self,
@@ -207,64 +216,64 @@ class CommonTransformer(ABC):
 #         )
 
 
-class TransformDemographicData(CommonTransformer):
-    def __init__(self):
-        super().__init__(
-            na_remover=False, #Alle data uit Brussels gewest bevat NA's velden, als gevolg geen info over brussel
-            column_renamer={
-                "CD_REFNIS": "municipality_niscode",  # Gemeente nis
-                "TX_DESCR_NL": "municipality_name",  # Gemeente
-                "CD_DSTR_REFNIS": "district_niscode",  # Arrondissement nis
-                "TX_ADM_DSTR_DESCR_NL": "district_name",  # Arrondissement
-                "CD_PROV_REFNIS": "province_niscode",  # Provincie nis
-                "TX_PROV_DESCR_NL": "province_name",  # Provincie
-                "CD_RGN_REFNIS": "region_niscode",  # Gewest Nis
-                "TX_RGN_DESCR_NL": "region_name",  # Gewest
-                "CD_SEX": "sex",  # sex
-                "CD_NATLTY": "nationality_code",  # nationaliteit
-                "TX_NATLTY_NL": "nationality_name",
-                "CD_CIV_STS": "marital_status_code",
-                "TX_CIV_STS_NL": "marital_status_name",
-                "CD_AGE": "age",
-                "MS_POPULATION": "population",  # Aantal mensjes
-            },
-            drop_columns=[
-                "TX_DESCR_FR",
-                "TX_ADM_DSTR_DESCR_FR",
-                "TX_PROV_DESCR_FR",
-                "TX_RGN_DESCR_FR",
-                "TX_NATLTY_FR",
-                "TX_CIV_STS_FR",
-            ],
-            na_filler=True
-        )
+# class TransformDemographicData(CommonTransformer):
+#     def __init__(self):
+#         super().__init__(
+#             na_remover=False, #Alle data uit Brussels gewest bevat NA's velden, als gevolg geen info over brussel
+#             column_renamer={
+#                 "CD_REFNIS": "municipality_niscode",  # Gemeente nis
+#                 "TX_DESCR_NL": "municipality_name",  # Gemeente
+#                 "CD_DSTR_REFNIS": "district_niscode",  # Arrondissement nis
+#                 "TX_ADM_DSTR_DESCR_NL": "district_name",  # Arrondissement
+#                 "CD_PROV_REFNIS": "province_niscode",  # Provincie nis
+#                 "TX_PROV_DESCR_NL": "province_name",  # Provincie
+#                 "CD_RGN_REFNIS": "region_niscode",  # Gewest Nis
+#                 "TX_RGN_DESCR_NL": "region_name",  # Gewest
+#                 "CD_SEX": "sex",  # sex
+#                 "CD_NATLTY": "nationality_code",  # nationaliteit
+#                 "TX_NATLTY_NL": "nationality_name",
+#                 "CD_CIV_STS": "marital_status_code",
+#                 "TX_CIV_STS_NL": "marital_status_name",
+#                 "CD_AGE": "age",
+#                 "MS_POPULATION": "population",  # Aantal mensjes
+#             },
+#             drop_columns=[
+#                 "TX_DESCR_FR",
+#                 "TX_ADM_DSTR_DESCR_FR",
+#                 "TX_PROV_DESCR_FR",
+#                 "TX_RGN_DESCR_FR",
+#                 "TX_NATLTY_FR",
+#                 "TX_CIV_STS_FR",
+#             ],
+#             na_filler=True
+#         )
 
-    def custom_transform(self, data_frame: pd.DataFrame, path):
-        year = self.extract_year_from_path(path)
-        data_frame["year"] = year
-        return data_frame
+#     def custom_transform(self, data_frame: pd.DataFrame, path):
+#         year = self.extract_year_from_path(path)
+#         data_frame["year"] = year
+#         return data_frame
 
 
-class TransformTotalNumberOfDeadsPerRegion(CommonTransformer):
-    def __init__(self):
-        super().__init__(
-            na_remover=True,
-            column_renamer={
-                "CD_ARR": "district_niscode",
-                "CD_PROV": "province_niscode",
-                "CD_REGIO": "region_niscode",
-                "CD_SEX": "sex",
-                "CD_AGEGROUP": "agegroup",
-                "DT_DATE": "date",
-                "NR_YEAR": "year",
-                "NR_WEEK": "weak",
-                "MS_NUM_DEATH": "number_of_deaths",
-            },
-        )
+# class TransformTotalNumberOfDeadsPerRegion(CommonTransformer):
+#     def __init__(self):
+#         super().__init__(
+#             na_remover=True,
+#             column_renamer={
+#                 "CD_ARR": "district_niscode",
+#                 "CD_PROV": "province_niscode",
+#                 "CD_REGIO": "region_niscode",
+#                 "CD_SEX": "sex",
+#                 "CD_AGEGROUP": "agegroup",
+#                 "DT_DATE": "date",
+#                 "NR_YEAR": "year",
+#                 "NR_WEEK": "weak",
+#                 "MS_NUM_DEATH": "number_of_deaths",
+#             },
+#         )
 
-    def custom_transform(self, df: pd.DataFrame, path):
-        df['date'] = pd.to_datetime(df['date'])
-        return df
+#     def custom_transform(self, df: pd.DataFrame, path):
+#         df['date'] = pd.to_datetime(df['date'])
+#         return df
 
 class TransformTotalNumberOfVaccinationsPerNICCode(CommonTransformer):
     def __init__(self):
