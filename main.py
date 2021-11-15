@@ -19,28 +19,6 @@ def run():
     # initialize db session
     # pipelines = [
     #     Pipeline(
-    #         CovidVaccinationByCategory,
-    #         #path="testdata/cov1.csv",
-    #         path="https://epistat.sciensano.be/Data/COVID19BE_VACC.csv",
-    #         transformer=TransformCovidVaccinationByCategory(),
-    #         # session=session,
-    #     ),
-    #     Pipeline(
-    #         CovidMortality,
-    #         #path="testdata/mort1.csv",
-    #         path="https://epistat.sciensano.be/Data/COVID19BE_MORT.csv",
-    #         transformer=TransformCovidMortality(),
-    #         # session=session,
-    #     ),
-    #     Pipeline(
-    #         CovidConfirmedCases,
-    #         #path="testdata/case.csv",
-    #         path="https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.csv",
-    #         transformer=TransformCovidConfirmedCases(),
-    #         # session=session,
-    #         isLast=False
-    #     ),
-    #     Pipeline(
     #         RegionDemographics,
     #         path="https://statbel.fgov.be/sites/default/files/files/opendata/bevolking%20naar%20woonplaats%2C%20nationaliteit%20burgelijke%20staat%20%2C%20leeftijd%20en%20geslacht/TF_SOC_POP_STRUCT_2021.zip",
     #         transformer=TransformDemographicData(),

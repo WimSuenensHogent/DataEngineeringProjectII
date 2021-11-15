@@ -179,26 +179,21 @@ class CovidConfirmedCasesByCategory(Base):
             self.agegroup,
         )
 
+class DemographicsByNISCodeAndCategory(Base):
+    __tablename__ = "fact_demographics_by_nis_code_and_category"
 
-# class RegionDemographics(Base):
-#     __tablename__ = "region_demographics"
-#     id = Column(Integer, primary_key=True, nullable=False)
-#     year = Column(Integer, nullable=True)
-#     municipality_niscode = Column(Integer, nullable=True)
-#     municipality_name = Column(String, nullable=True)
-#     district_niscode = Column(Integer, nullable=True)
-#     district_name = Column(String, nullable=True)
-#     province_niscode = Column(Integer, nullable=True)
-#     province_name = Column(String, nullable=True)
-#     region_niscode = Column(Integer, nullable=True)
-#     region_name = Column(String, nullable=True)
-#     sex = Column(String, nullable=True)
-#     nationality_code = Column(String, nullable=True)
-#     nationality_name = Column(String, nullable=True)
-#     marital_status_code = Column(String, nullable=True)
-#     marital_status_name = Column(String, nullable=True)
-#     age = Column(Integer, nullable=True)
-#     population = Column(Integer, nullable=True)
+    # id = Column(Integer, primary_key=True, nullable=False)
+    year = Column(Integer, primary_key=True)
+    nis = Column(Integer, primary_key=True)
+    sex = Column(String, primary_key=True)
+    nationality_code = Column(String, primary_key=True)
+    nationality_text_nl = Column(String)
+    nationality_text_fr = Column(String)
+    marital_status_code = Column(String, primary_key=True)
+    marital_status_text_nl = Column(String)
+    marital_status_text_fr = Column(String)
+    age = Column(Integer, primary_key=True)
+    population = Column(Integer)
 
 
 # class TotalNumberOfDeadsPerRegions(Base):

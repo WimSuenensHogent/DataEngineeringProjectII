@@ -193,6 +193,80 @@
           }
         }
       ]
+    },
+    {
+      "source": "https://statbel.fgov.be/sites/default/files/files/opendata/bevolking%20naar%20woonplaats%2C%20nationaliteit%20burgelijke%20staat%20%2C%20leeftijd%20en%20geslacht/TF_SOC_POP_STRUCT_2021.zip",
+      "model": "DemographicsByNISCodeAndCategory",
+      "metadata_handler": {
+        "frequency": "yearly"
+      },
+      "tranforms": [
+        {
+          "type": "drop_columns",
+          "data": {
+            "columns": [
+              "TX_DESCR_NL",
+              "TX_DESCR_FR",
+              "CD_DSTR_REFNIS",
+              "TX_ADM_DSTR_DESCR_NL",
+              "TX_ADM_DSTR_DESCR_FR",
+              "CD_PROV_REFNIS",
+              "TX_PROV_DESCR_NL",
+              "TX_PROV_DESCR_FR",
+              "CD_RGN_REFNIS",
+              "TX_RGN_DESCR_NL",
+              "TX_RGN_DESCR_FR"
+            ]
+          }
+        },
+        {
+          "type": "rename_columns",
+          "data": {
+            "columns": {
+              "CD_REFNIS": "nis",
+              "CD_SEX": "sex",
+              "CD_NATLTY": "nationality_code",
+              "TX_NATLTY_NL": "nationality_text_nl",
+              "TX_NATLTY_FR": "nationality_text_fr",
+              "CD_CIV_STS": "marital_status_code",
+              "TX_CIV_STS_NL": "marital_status_text_nl",
+              "TX_CIV_STS_FR": "marital_status_text_fr",
+              "CD_AGE": "age",
+              "MS_POPULATION": "population"
+            }
+          }
+        },
+        {
+          "type": "add_column",
+          "data": {
+            "column": "year",
+            "static_value": {
+              "type": "integer",
+              "value": 2021
+            }
+          }
+        },
+        {
+          "type": "group_by",
+          "data": {
+            "columns": [
+              "year",
+              "nis",
+              "sex",
+              "nationality_code",
+              "nationality_text_nl",
+              "nationality_text_fr",
+              "marital_status_code",
+              "marital_status_text_nl",
+              "marital_status_text_fr",
+              "age"
+            ],
+            "aggregate": {
+              "type": "sum"
+            }
+          }
+        }
+      ]
     }
   ]
 }

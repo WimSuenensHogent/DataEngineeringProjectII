@@ -8,8 +8,8 @@ from app.settings import BASE_DIR
 
 def run():
   with open(
-    os.path.join(BASE_DIR, "app/data.json"), mode="r", encoding="UTF-8"
-    # os.path.join(BASE_DIR, "app/data_test.json"), mode="r", encoding="UTF-8"
+    # os.path.join(BASE_DIR, "app/data.json"), mode="r", encoding="UTF-8"
+    os.path.join(BASE_DIR, "app/data_test.json"), mode="r", encoding="UTF-8"
   ) as file:
     data = json.load(file)
     for pl in data['pipelines']:
@@ -26,5 +26,6 @@ def run():
       # data_frame = pipeline.extract()
       # data_frame = pipeline.transform(data_frame)
       # data_frame = pipeline.handle_metadata(data_frame)
+      # print(data_frame)
       data_list = pipeline.process()
       print(data_list)

@@ -22,7 +22,11 @@ def get_lambda_to_apply(data=None):
                 return lambda x: date.max
             if (data_value == "date.min"):
                 return lambda x: date.min
+            return lambda_to_apply
         
+        if (data_type == "integer"):
+            return lambda_to_apply
+
         return lambda_to_apply
 
     if("format" in dict.keys(data)):
@@ -84,6 +88,29 @@ class Transformer():
         )
         return data_frame
 
+    def add_column(self, data_frame, data_transform):
+        column = data_transform["column"]
+
+        if ("static_value" in dict.keys(data_transform)):
+            static_value = data_transform["static_value"]
+
+            data_type = static_value["type"]
+            if (data_type == "integer"):
+                data_value = static_value["value"]
+                data_frame[column] = data_value
+                return data_frame
+
+        return data_frame
+
+    def group_by(self, data_frame, data_transform):
+        columns = data_transform["columns"]
+        aggregate = data_transform["aggregate"]
+
+        groupedby = data_frame.groupby(columns)
+        if (aggregate["type"] == "sum"):
+            data_frame = groupedby.sum().reset_index()
+
+        return data_frame
 class CommonTransformer(ABC):
     def __init__(
         self,
