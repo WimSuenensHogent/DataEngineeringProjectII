@@ -132,7 +132,7 @@ Create a Dockerfile and build the docker image
 
 ```console
 # lock the project dependecies
-$ pinpenv lock
+$ pipenv lock
 
 # build the image in your local repository based upon the Dockerfile in your project
 $ docker build -t wimsuenenshogent/covid-etl:0.1 .
