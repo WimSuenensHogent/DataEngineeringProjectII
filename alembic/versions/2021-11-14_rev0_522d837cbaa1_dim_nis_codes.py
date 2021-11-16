@@ -8,6 +8,8 @@ Create Date: 2021-11-14 23:22:50.991580
 from alembic import op
 import sqlalchemy as sa
 
+from app.utils import get_db_type
+
 
 # revision identifiers, used by Alembic.
 revision = '522d837cbaa1'
@@ -27,8 +29,8 @@ def upgrade():
     sa.Column('text_de', sa.String(length=255), nullable=True),
     sa.Column('valid_from', sa.Date(), nullable=False),
     sa.Column('valid_till', sa.Date(), nullable=False),
-    sa.CheckConstraint('length(nis)==5'),
-    sa.CheckConstraint('length(parent_nis)==5'),
+    (sa.CheckConstraint('LEN(nis)=5')) if (get_db_type() == "mssql") else (sa.CheckConstraint('length(nis)==5')),
+    (sa.CheckConstraint('LEN(parent_nis)=5')) if (get_db_type() == "mssql") else (sa.CheckConstraint('length(parent_nis)==5')),
     sa.PrimaryKeyConstraint('nis', 'valid_from')
     )
     # ### end Alembic commands ###

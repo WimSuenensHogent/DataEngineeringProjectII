@@ -53,9 +53,6 @@ def run_migrations_offline():
     """
     # url = config.get_main_option("sqlalchemy.url")
     url = get_db_url()
-    print("get_db_url")
-    print(url)
-    # url = os.environ.get('DATABASE_URL') or 'sqlite:///database.sqlite'
     context.configure(
         url=url,
         target_metadata=target_metadata,

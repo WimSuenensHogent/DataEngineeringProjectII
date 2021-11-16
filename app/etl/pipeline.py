@@ -8,7 +8,7 @@ from app.etl.transformer import Transformer
 from app.exceptions import IncorrectDataSourcePath
 from app.models.base import Base
 from app.models.metadata import ETL_Metadata
-from app.utils import db_session
+from app.utils import db_session, get_db_type
 
 
 class Pipeline:
@@ -105,9 +105,17 @@ class Pipeline:
             # days_to_extract = ((datetime.now(timezone('Europe/Brussels')).date()) - self.last_date_processed).days
         if (self.metadata_handler):
             if ("date_column" in dict(self.metadata_handler)):
+                date_until_to_filter = datetime.now(timezone('Europe/Brussels')).date()
+                # used to reduce the size of the data_frame. Bulk inserts are taking long...
+                # min_date_in_data_frame = (data_frame[self.metadata_handler["date_column"]]).min()
+                # if (self.last_date_processed == date.min):
+                #     self.last_date_processed = (min_date_in_data_frame - timedelta(days=1))
+                # max_timedelta_in_days = 90
+                # if ((date_until_to_filter - self.last_date_processed).days > max_timedelta_in_days):
+                #     date_until_to_filter = self.last_date_processed + timedelta(days=max_timedelta_in_days)
                 data_frame = data_frame[
                     (data_frame[self.metadata_handler["date_column"]] > self.last_date_processed) &
-                    (data_frame[self.metadata_handler["date_column"]] <= (datetime.now(timezone('Europe/Brussels')).date()))
+                    (data_frame[self.metadata_handler["date_column"]] <= date_until_to_filter)
                     # used for testing...
                     # (data_frame[self.metadata_handler["date_column"]] <= ((datetime.now(timezone('Europe/Brussels')).date()) - timedelta(days=(days_to_extract-3))))
                 ]
@@ -117,7 +125,7 @@ class Pipeline:
     def load(self, data_frame: pd.DataFrame):
         if (data_frame.empty):
             return []
-        list = [
+        data_list = [
             self.data_class(**kwargs) for kwargs in data_frame.to_dict(orient="records")
         ]
         last_date_processed = self.last_date_processed
@@ -136,7 +144,7 @@ class Pipeline:
                 session.execute(
                     (
                         ('''TRUNCATE TABLE {table}''').format(table=(self.data_class).__tablename__)
-                    ) if (os.environ.get('DATABASE_URL')) else (
+                    ) if (get_db_type() == "mssql") else (
                         ('''DELETE FROM {table}''').format(table=(self.data_class).__tablename__)
                     )
                 )
@@ -149,10 +157,26 @@ class Pipeline:
                     last_date_processed
                 )
                 session.add(etl_metadata)
-            session.bulk_save_objects(list)
+            # TODO : Handle by logger
+            print("pipeline '{table}' : {length} lines to be added to the database. etl_metadata.last_date_processed will be set to {last_update}".format(
+                table=self.data_class.__tablename__,
+                length=len(data_list),
+                last_update=etl_metadata.last_date_processed
+            ))
+
+            # engine = session.get_bind()
+            # data_frame.to_sql(
+            #     (self.data_class).__tablename__,
+            #     con=engine,
+            #     if_exists="append",
+            #     chunksize=1000,
+            #     index=False
+            # )
+
+            session.bulk_save_objects(data_list)
             session.commit()
             session.close()
-        return list
+        return data_list
 
     def process(self):
         data_frame = self.extract()

@@ -265,6 +265,28 @@
               "type": "sum"
             }
           }
+        },
+        {
+          "type": "update_value",
+          "data": {
+            "column": "nis",
+            "type": "string",
+            "update": {
+              "type": "string",
+              "format": "{0:0>5}"
+            }
+          }
+        },
+        {
+          "type": "update_value",
+          "data": {
+            "column": "nis",
+            "update": {
+              "type": "string",
+              "find": "(\\.0+)",
+              "replace": ""
+            }
+          }
         }
       ]
     },
@@ -320,6 +342,28 @@
             ],
             "aggregate": {
               "type": "sum"
+            }
+          }
+        },
+        {
+          "type": "update_value",
+          "data": {
+            "column": "nis_district",
+            "type": "string",
+            "update": {
+              "type": "string",
+              "format": "{0:0>5}"
+            }
+          }
+        },
+        {
+          "type": "update_value",
+          "data": {
+            "column": "nis_district",
+            "update": {
+              "type": "string",
+              "find": "(\\.0+)",
+              "replace": ""
             }
           }
         }
@@ -395,6 +439,28 @@
             "value_if_false": {
               "type": "boolean",
               "value": false
+            }
+          }
+        },
+        {
+          "type": "update_value",
+          "data": {
+            "column": "nis_code",
+            "type": "string",
+            "update": {
+              "type": "string",
+              "format": "{0:0>5}"
+            }
+          }
+        },
+        {
+          "type": "update_value",
+          "data": {
+            "column": "nis_code",
+            "update": {
+              "type": "string",
+              "find": "(\\.0+)",
+              "replace": ""
             }
           }
         }

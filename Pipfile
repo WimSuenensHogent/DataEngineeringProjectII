@@ -6,7 +6,6 @@ name = "pypi"
 [packages]
 numpy = "*"
 pandas = "*"
-jupyter = "*"
 openpyxl = "*"
 pyyaml = "*"
 sqlalchemy = "*"
@@ -17,6 +16,7 @@ python-dotenv = "*"
 pytz = "*"
 
 [dev-packages]
+jupyter = "*"
 pylint = "*"
 black = "*"
 

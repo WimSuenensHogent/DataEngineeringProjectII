@@ -1,5 +1,6 @@
 import json
 import os
+import traceback
 
 from app.etl.pipeline import Pipeline
 from app.etl.transformer import Transformer
@@ -24,13 +25,22 @@ def run():
           transformer=Transformer(pl["tranforms"]),
           metadata_handler=metadata_handler
         )
+        # data_frame = pipeline.extract()
+        # data_frame = pipeline.transform(data_frame)
+        # print(data_frame)
+        # print(data_frame.describe())
+        # print(data_frame.info())
+
         data_list = pipeline.process()
         # TODO: Handle by logger
         print("Finished pipeline '{table}' : {length} lines added to the database".format(
           table=data_class.__tablename__,
           length=len(data_list)
         ))
-      except:
+      except Exception as e:
         # TODO: Handle by logger
         print("Something went wrong...")
         print(pl)
+        print(e)
+        print(traceback.format_exc())
+

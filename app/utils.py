@@ -8,8 +8,47 @@ from app.tools.logger import get_logger
 
 logger = get_logger(__name__)
 
+def get_db_type():
+    TYPE = os.environ.get('DATABASE_TYPE')
+    # print("TYPE")
+    # print(TYPE)
+
+    if ((not TYPE) or (TYPE != 'mssql')):
+        TYPE = "sqlite"
+        URL = os.environ.get('DATABASE_URL')
+        if (URL):
+            if ('mssql' in URL.lower()):
+                TYPE = "mssql"
+    
+    return TYPE
+
 def get_db_url():
-    return os.environ.get('DATABASE_URL') or 'sqlite:///database.sqlite'
+    URL = os.environ.get('DATABASE_URL')
+
+    # TYPE = os.environ.get('DATABASE_TYPE')
+    TYPE = get_db_type()
+    SERVER = os.environ.get('DATABASE_SERVER')
+    DATABASE = os.environ.get('DATABASE_DATABASE')
+    UID = os.environ.get('DATABASE_UID')
+    PWD = os.environ.get('DATABASE_PWD')
+
+    if (TYPE):
+        if (TYPE == "mssql" and SERVER and DATABASE and UID and PWD):
+            URL = '{TYPE}+pyodbc:///?odbc_connect=DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={SERVER};DATABASE={DATABASE};UID={UID};PWD={PWD}'.format(
+                TYPE=TYPE,
+                SERVER=SERVER,
+                DATABASE=DATABASE,
+                UID=UID,
+                PWD=PWD
+            )
+    
+    if (not URL):
+        # URL = 'sqlite:///database.sqlite'
+        URL = 'sqlite://'
+    # print('URL')
+    # print(URL)
+    return URL
+    # return os.environ.get('DATABASE_URL') or 'sqlite:///database.sqlite'
 
 def get_db_engine(echo=False):
     url = get_db_url()
