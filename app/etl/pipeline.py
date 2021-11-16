@@ -172,8 +172,30 @@ class Pipeline:
             #     chunksize=1000,
             #     index=False
             # )
+            # lst = [50, 70, 30, 20, 90, 10, 50]
+            length = len(data_list)
+            step=10000
+            array_to_process=[]
+            processed=0
+            index=0
+            while(index < length):
+                till_index = index + step
+                if (till_index > length):
+                    till_index = length
+                array_to_process.append(data_list[index:till_index])
+                index = till_index
 
-            session.bulk_save_objects(data_list)
+            processed=0
+            for i in array_to_process:
+                session.bulk_save_objects(i)
+                processed = processed + len(i)
+                # TODO : Handle by logger
+                print("pipeline '{table}' : {processed} of {length} lines added to the database...".format(
+                    table=self.data_class.__tablename__,
+                    processed=processed,
+                    length=len(data_list),
+                ))
+            # session.bulk_save_objects(data_list)
             session.commit()
             session.close()
         return data_list
