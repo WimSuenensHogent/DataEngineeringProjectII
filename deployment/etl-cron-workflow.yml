@@ -4,32 +4,34 @@ metadata:
   name: etl-cron-workflow
   namespace: argo
 spec:
-  schedule: "0 * * * *"
+  schedule: "0 6,22 * * *"
+  timezone: Europe/Brussels
   concurrencyPolicy: "Forbid"
   startingDeadlineSeconds: 70
   workflowSpec:
-    entrypoint: dag-template
+    entrypoint: etl-process
     serviceAccountName: argo
     templates:
-    - name: dag-template
-      dag:
-        tasks:
-        - name: etl-process
-          template: task-template
-    - name: task-template
+    - name: etl-process
       script:
-        image: wimsuenenshogent/covid-etl:0.1
+        image: wimsuenenshogent/covid-etl:1.0
         imagePullPolicy: Always
         command: [bash]
         source: |
-          python /code/main.py
+          python /code/main.py -m upgrade
         env:
-        - name: DB_USERNAME
+        - name: DATABASE_TYPE
+          value: mssql
+        - name: DATABASE_SERVER
+          value: 34.140.20.123
+        - name: DATABASE_DATABASE
+          value: data_warehouse_covid
+        - name: DATABASE_UID
           valueFrom:
             secretKeyRef:
               name: etl-secrets
               key: username
-        - name: DB_PASSWORD
+        - name: DATABASE_PWD
           valueFrom:
             secretKeyRef:
               name: etl-secrets

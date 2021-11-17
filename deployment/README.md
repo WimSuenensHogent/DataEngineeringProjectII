@@ -122,6 +122,16 @@ service/argo-server created
 service/workflow-controller-metrics created
 deployment.apps/argo-server created
 deployment.apps/workflow-controller created
+
+$ kubectl get pods -n argo
+
+NAME                                   READY   STATUS    RESTARTS      AGE
+argo-server-68b7b4c668-v4l6l           1/1     Running   3 (25m ago)   10d
+workflow-controller-69995784bd-ftfzn   1/1     Running   5 (25m ago)   10d
+
+$ kubectl -n argo exec argo-server-68b7b4c668-v4l6l -- argo auth token
+Bearer HERE_YOU_FIND_YOUR_AUTH_TOKEN
+
 ```
 
 ## Configuration
@@ -132,7 +142,7 @@ Create a Dockerfile and build the docker image
 
 ```console
 # lock the project dependecies
-$ pinpenv lock
+$ pipenv lock
 
 # build the image in your local repository based upon the Dockerfile in your project
 $ docker build -t wimsuenenshogent/covid-etl:0.1 .
