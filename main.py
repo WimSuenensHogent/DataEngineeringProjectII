@@ -10,9 +10,9 @@ from app import utils
 from app import _app
 from app.tools.logger import get_logger
 
-ssl._create_default_https_context = ssl._create_unverified_context
-load_dotenv()
-logger = get_logger(__name__)
+#ssl._create_default_https_context = ssl._create_unverified_context
+#load_dotenv()
+#logger = get_logger(__name__)
 
 def run():
     return _app.run()

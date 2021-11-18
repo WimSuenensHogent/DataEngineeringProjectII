@@ -10,11 +10,13 @@ from app.utils import db_session, get_db_type
 from sqlalchemy.orm import validates
 from sqlalchemy.sql.sqltypes import Boolean, Date, Integer, String
 from sqlalchemy.sql.schema import CheckConstraint, Column
+
+
 # https://docs.sqlalchemy.org/en/14/orm/self_referential.html
 
 class NIS_Code(Base):
     __tablename__ = 'dim_nis_codes'
-    
+
     nis = Column(String(5), primary_key=True)
     # parent_nis = Column(String(5), ForeignKey('dim_nis_codes.nis'), nullable=True)
     parent_nis = Column(String(5), nullable=True)
@@ -24,7 +26,7 @@ class NIS_Code(Base):
     text_de = Column(String(255))
     valid_from = Column(Date, primary_key=True)
     valid_till = Column(Date, nullable=False)
-    
+
     # children = relationship(
     #     "NIS_Code",
     #     lazy='select',                    
@@ -36,14 +38,14 @@ class NIS_Code(Base):
             CheckConstraint('LEN(nis)=5'),
             CheckConstraint('LEN(parent_nis)=5')
         ) if (
-            get_db_type() == "mssql"
+                get_db_type() == "mssql"
             # os.environ.get('DATABASE_URL')
         ) else (
             CheckConstraint('length(nis)==5'),
             CheckConstraint('length(parent_nis)==5')
         ),
     )
-    
+
     def __repr__(self):
         return """
             <NIS_Code(level='%s', nis='%s', name='%s', parent='%s')>
@@ -59,7 +61,7 @@ class NIS_Code(Base):
         if len(nis) != 5:
             raise ValueError("'nis' should be 5 characters long..")
         return nis
-    
+
     @validates('parent_nis')
     def validate_parent_nis(self, key, parent_nis) -> str:
         if (not parent_nis):
@@ -74,6 +76,7 @@ class NIS_Code(Base):
             local_nis_codes_all = session.query(NIS_Code).all()
             session.close()
             return local_nis_codes_all
+
 
 class CovidVaccinationByCategory(Base):
     __tablename__ = "fact_covid_vaccinations_by_category"
@@ -96,6 +99,7 @@ class CovidVaccinationByCategory(Base):
             self.count
         )
 
+
 class CovidMortalityByCategory(Base):
     __tablename__ = "fact_covid_mortality_by_category"
 
@@ -115,6 +119,8 @@ class CovidMortalityByCategory(Base):
             self.sex,
             self.deaths
         )
+
+
 class CovidConfirmedCasesByCategory(Base):
     __tablename__ = "fact_covid_confirmed_cases_by_category"
 
@@ -136,6 +142,7 @@ class CovidConfirmedCasesByCategory(Base):
             self.cases
         )
 
+
 class DemographicsByNISCodeAndCategory(Base):
     __tablename__ = "fact_demographics_by_nis_code_and_category"
 
@@ -155,7 +162,7 @@ class DemographicsByNISCodeAndCategory(Base):
         (
             CheckConstraint('LEN(nis)=5')
         ) if (
-            get_db_type() == "mssql"
+                get_db_type() == "mssql"
         ) else (
             CheckConstraint('length(nis)==5')
         ),
@@ -178,6 +185,8 @@ class DemographicsByNISCodeAndCategory(Base):
         if len(nis) != 5:
             raise ValueError("'nis' should be 5 characters long..")
         return nis
+
+
 class NumberOfDeathsByDistrictNISCode(Base):
     __tablename__ = "fact_number_of_deaths_by_district_nis_code"
 
@@ -191,7 +200,7 @@ class NumberOfDeathsByDistrictNISCode(Base):
         (
             CheckConstraint('LEN(nis_district)=5')
         ) if (
-            get_db_type() == "mssql"
+                get_db_type() == "mssql"
         ) else (
             CheckConstraint('length(nis_district)==5')
         ),
@@ -213,6 +222,7 @@ class NumberOfDeathsByDistrictNISCode(Base):
         if len(nis_district) != 5:
             raise ValueError("'nis_district' should be 5 characters long..")
         return nis_district
+
 
 class VaccinationsByNISCodeDailyUpdated(Base):
     __tablename__ = "fact_vaccinations_by_nis_code_daily_updated"
@@ -239,7 +249,7 @@ class VaccinationsByNISCodeDailyUpdated(Base):
         (
             CheckConstraint('LEN(nis_code)=5')
         ) if (
-            get_db_type() == "mssql"
+                get_db_type() == "mssql"
         ) else (
             CheckConstraint('length(nis_code)==5')
         ),
@@ -261,6 +271,7 @@ class VaccinationsByNISCodeDailyUpdated(Base):
             raise ValueError("'nis_code' should be 5 characters long..")
         return nis_code
 
+
 class VaccinationsByNISCodeAndWeek(Base):
     __tablename__ = "fact_vaccinations_by_nis_code_and_week"
 
@@ -276,7 +287,7 @@ class VaccinationsByNISCodeAndWeek(Base):
         (
             CheckConstraint('LEN(nis_code)=5')
         ) if (
-            get_db_type() == "mssql"
+                get_db_type() == "mssql"
         ) else (
             CheckConstraint('length(nis_code)==5')
         ),
