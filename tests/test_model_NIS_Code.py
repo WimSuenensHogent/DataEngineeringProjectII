@@ -71,10 +71,9 @@ class TestNIS_Code(unittest.TestCase):
     #     sqlite3.connect.assert_called_with('test_database')
     #     self.assertEqual(dbc.connection, 'connection failed')
 
-    @patch('app.modules.somemodule.DBSession')
-    def test_asd(self, DBSession):
-        DBSession.execute.query.execute.all.return_value = [1, 2, 3]
-        self.assertListEqual(DBSession.query('qwe').all(), [1, 2, 3])
+    @patch('app.etl.pipeline.db_session')
+    def test_asd(self, db_session):
+        pass
 
 
 if __name__ == '__main__':
