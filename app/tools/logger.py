@@ -47,4 +47,3 @@ def get_logger(name):
         logging.config.dictConfig(config)
         logger = logging.getLogger(name)
         return logger
-

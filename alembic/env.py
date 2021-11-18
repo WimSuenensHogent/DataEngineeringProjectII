@@ -77,7 +77,7 @@ def run_migrations_online():
     #     poolclass=pool.NullPool,
     # )
     connectable = get_db_engine()
-    
+
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
 

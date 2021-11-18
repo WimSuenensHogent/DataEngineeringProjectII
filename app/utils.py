@@ -8,52 +8,53 @@ from app.tools.logger import get_logger
 
 logger = get_logger(__name__)
 
+
 def get_db_type():
-    TYPE = os.environ.get('DATABASE_TYPE')
+    # return "mssql"
+    TYPE = os.environ.get("DATABASE_TYPE")
     # print("TYPE")
     # print(TYPE)
 
-    if ((not TYPE) or (TYPE != 'mssql')):
+    if (not TYPE) or (TYPE != "mssql"):
         TYPE = "sqlite"
-        URL = os.environ.get('DATABASE_URL')
-        if (URL):
-            if ('mssql' in URL.lower()):
+        URL = os.environ.get("DATABASE_URL")
+        if URL:
+            if "mssql" in URL.lower():
                 TYPE = "mssql"
-    
+
     return TYPE
 
+
 def get_db_url():
-    URL = os.environ.get('DATABASE_URL')
+    # return "mssql://localhost:localhost@localhost/covid_data?driver=ODBC Driver 17 for SQL Server"
+    URL = os.environ.get("DATABASE_URL")
 
     # TYPE = os.environ.get('DATABASE_TYPE')
     TYPE = get_db_type()
-    SERVER = os.environ.get('DATABASE_SERVER')
-    DATABASE = os.environ.get('DATABASE_DATABASE')
-    UID = os.environ.get('DATABASE_UID')
-    PWD = os.environ.get('DATABASE_PWD')
+    SERVER = os.environ.get("DATABASE_SERVER")
+    DATABASE = os.environ.get("DATABASE_DATABASE")
+    UID = os.environ.get("DATABASE_UID")
+    PWD = os.environ.get("DATABASE_PWD")
 
-    if (TYPE):
-        if (TYPE == "mssql" and SERVER and DATABASE and UID and PWD):
-            URL = '{TYPE}+pyodbc:///?odbc_connect=DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={SERVER};DATABASE={DATABASE};UID={UID};PWD={PWD}'.format(
-                TYPE=TYPE,
-                SERVER=SERVER,
-                DATABASE=DATABASE,
-                UID=UID,
-                PWD=PWD
+    if TYPE:
+        if TYPE == "mssql" and SERVER and DATABASE and UID and PWD:
+            URL = "{TYPE}+pyodbc:///?odbc_connect=DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={SERVER};DATABASE={DATABASE};UID={UID};PWD={PWD}".format(
+                TYPE=TYPE, SERVER=SERVER, DATABASE=DATABASE, UID=UID, PWD=PWD
             )
-    
-    if (not URL):
+
+    if not URL:
         # URL = 'sqlite:///database.sqlite'
-        URL = 'sqlite://'
-    # print('URL')
+        URL = "sqlite://"
     # print(URL)
     return URL
     # return os.environ.get('DATABASE_URL') or 'sqlite:///database.sqlite'
+
 
 def get_db_engine(echo=False):
     url = get_db_url()
     engine = create_engine(url, echo=echo)
     return engine
+
 
 @contextlib.contextmanager
 # def db_session(settings):
@@ -71,8 +72,18 @@ def db_session(echo=False):
         finally:
             session.close()
 
+
 # Print iterations progress
-def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '#', printEnd = "\r"):
+def printProgressBar(
+    iteration,
+    total,
+    prefix="",
+    suffix="",
+    decimals=1,
+    length=100,
+    fill="#",
+    printEnd="\r",
+):
     """
     Call in a loop to create terminal progress bar
     @params:
@@ -87,8 +98,8 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
     """
     percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
     filledLength = int(length * iteration // total)
-    bar = fill * filledLength + '-' * (length - filledLength)
-    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
+    bar = fill * filledLength + "-" * (length - filledLength)
+    print(f"\r{prefix} |{bar}| {percent}% {suffix}", end=printEnd)
     # Print New Line on Complete
     if iteration == total:
         print()
