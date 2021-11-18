@@ -46,7 +46,7 @@
         {
           "type": "update_value",
           "data": {
-            "column": "plus18",
+            "column": "ADULT_FL(18+)",
             "current_value": 1,
             "value_if_true": {
               "type": "boolean",
