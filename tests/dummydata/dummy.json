@@ -1,0 +1,101 @@
+{
+  "pipeline": [
+    {
+      "source": "https://www.laatjevaccineren.be/vaccination-info/get/vaccinaties.csv",
+      "model": "VaccinationsByNISCodeDailyUpdated",
+      "metadata_handler": {
+        "frequency": "daily",
+        "full_refresh": true
+      },
+      "tranforms": [
+        {
+          "type": "drop_columns",
+          "data": {
+            "columns": [
+              "MUNICIPALITY",
+              "PROVINCE",
+              "REGION",
+              "EERSTELIJNSZONE"
+            ]
+          }
+        },
+        {
+          "type": "rename_columns",
+          "data": {
+            "columns": {
+              "NIS_CD": "nis_code",
+              "GENDER_CD": "sex",
+              "AGE_CD": "agegroup",
+              "ADULT_FL(18+)": "plus18",
+              "SENIOR_FL(65+)": "plus65",
+              "FULLY_VACCINATED_AMT": "vaccinated_fully_total",
+              "PARTLY_VACCINATED_AMT": "vaccinated_partly_total",
+              "FULLY_VACCINATED_AZ_AMT": "vaccinated_fully_astrazeneca",
+              "PARTLY_VACCINATED_AZ_AMT": "vaccinated_partly_astrazeneca",
+              "FULLY_VACCINATED_PF_AMT": "vaccinated_fully_pfizer",
+              "PARTLY_VACCINATED_PF_AMT": "vaccinated_partly_pfizer",
+              "FULLY_VACCINATED_MO_AMT": "vaccinated_fully_moderna",
+              "PARTLY_VACCINATED_MO_AMT": "vaccinated_partly_moderna",
+              "FULLY_VACCINATED_JJ_AMT": "vaccinated_fully_johnsonandjohnson",
+              "FULLY_VACCINATED_OTHER_AMT": "vaccinated_fully_other",
+              "PARTLY_VACCINATED_OTHER_AMT": "vaccinated_partly_other",
+              "POPULATION_NBR": "population_by_agecategory_and_municipality"
+            }
+          }
+        },
+        {
+          "type": "update_value",
+          "data": {
+            "column": "plus18",
+            "current_value": 1,
+            "value_if_true": {
+              "type": "boolean",
+              "value": true
+            },
+            "value_if_false": {
+              "type": "boolean",
+              "value": false
+            }
+          }
+        },
+        {
+          "type": "update_value",
+          "data": {
+            "column": "plus65",
+            "current_value": 1,
+            "value_if_true": {
+              "type": "boolean",
+              "value": true
+            },
+            "value_if_false": {
+              "type": "boolean",
+              "value": false
+            }
+          }
+        },
+        {
+          "type": "update_value",
+          "data": {
+            "column": "nis_code",
+            "type": "string",
+            "update": {
+              "type": "string",
+              "format": "{0:0>5}"
+            }
+          }
+        },
+        {
+          "type": "update_value",
+          "data": {
+            "column": "nis_code",
+            "update": {
+              "type": "string",
+              "find": "(\\.0+)",
+              "replace": ""
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
