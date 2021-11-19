@@ -9,6 +9,7 @@ from sqlalchemy import pool
 from app.models.base import Base
 from app.models import models
 from app.models import metadata
+from app.models import log
 from app.utils import get_db_engine, get_db_url
 
 sys.path.append(os.getcwd())
@@ -22,7 +23,8 @@ config = context.config
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
-fileConfig(config.config_file_name)
+# fileConfig(config.config_file_name)
+fileConfig("logger.ini")
 
 # add your model's MetaData object here
 # for 'autogenerate' support

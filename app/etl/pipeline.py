@@ -1,16 +1,16 @@
 from datetime import date, datetime, timedelta
-import os
 from pytz import timezone
 
 import pandas as pd
 
 from app.etl.transformer import Transformer
 from app.exceptions import IncorrectDataSourcePath
+from app.logger import get_logger
 from app.models.base import Base
 from app.models.metadata import ETL_Metadata
 from app.utils import db_session, get_db_type
 
-
+logger = get_logger(__name__)
 class Pipeline:
     def __init__(
         self,
@@ -199,14 +199,14 @@ class Pipeline:
                     (self.data_class).__tablename__, last_date_processed
                 )
                 session.add(etl_metadata)
-            # TODO : Handle by logger
-            print(
-                "pipeline '{table}' : {length} lines to be added to the database. etl_metadata.last_date_processed will be set to {last_update}".format(
-                    table=self.data_class.__tablename__,
-                    length=len(data_list),
-                    last_update=etl_metadata.last_date_processed,
+                # This log will only be process when the log level of the 'sqlalchemy' logger in the 'logger.ini' is set to 'INFO' or less.
+                logger.info(
+                    "pipeline '{table}' : {length} lines to be added to the database. etl_metadata.last_date_processed will be set to {last_update}".format(
+                        table=self.data_class.__tablename__,
+                        length=len(data_list),
+                        last_update=etl_metadata.last_date_processed,
+                    )
                 )
-            )
 
             # engine = session.get_bind()
             # data_frame.to_sql(
@@ -233,8 +233,8 @@ class Pipeline:
             for i in array_to_process:
                 session.bulk_save_objects(i)
                 processed = processed + len(i)
-                # TODO : Handle by logger
-                print(
+                # This log will only be process when the log level of the 'sqlalchemy' logger in the 'logger.ini' is set to 'INFO' or less.
+                logger.info(
                     "pipeline '{table}' : {processed} of {length} lines added to the database...".format(
                         table=self.data_class.__tablename__,
                         processed=processed,

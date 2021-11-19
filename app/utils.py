@@ -4,10 +4,8 @@ import contextlib
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.tools.logger import get_logger
-
-logger = get_logger(__name__)
-
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 def get_db_type():
     # return "mssql"
@@ -71,6 +69,28 @@ def db_session(echo=False):
             raise
         finally:
             session.close()
+
+def send_mail(to_emails: str, subject: str, html_content: str):
+    try:
+        sendgrid_api = os.environ.get('SENDGRID_API_KEY')
+        from_email = os.environ.get('SENDGRID_FROM_EMAIL')
+        if (not sendgrid_api):
+            return
+        if (not from_email):
+            return
+        message = Mail(
+            from_email=from_email,
+            to_emails=to_emails,
+            subject=subject,
+            html_content=html_content
+        )
+        sg = SendGridAPIClient(sendgrid_api)
+        response = sg.send(message)
+        print(response.status_code)
+        print(response.body)
+        print(response.headers)
+    except Exception as e:
+        print(e)
 
 
 # Print iterations progress

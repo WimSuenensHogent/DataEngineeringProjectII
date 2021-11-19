@@ -35,5 +35,5 @@ def upgrade():
         sa.PrimaryKeyConstraint("year", "municipality_niscode"),
     )
 
-    def downgrade():
-        op.drop_table("fact_region_income")
+def downgrade():
+    op.drop_table("fact_region_income")

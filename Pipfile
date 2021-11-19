@@ -12,8 +12,8 @@ sqlalchemy = "*"
 pyodbc = "*"
 alembic = "*"
 pre-commit = "*"
-python-dotenv = "*"
 pytz = "*"
+sendgrid = "*"
 
 [dev-packages]
 jupyter = "*"

@@ -2,18 +2,15 @@ import argparse
 import os
 import ssl
 
-from dotenv import load_dotenv
 from alembic.config import Config
 from alembic import command
 
 from app import utils
 from app import _app
-from app.tools.logger import get_logger
+from app.logger import get_logger
 
 ssl._create_default_https_context = ssl._create_unverified_context
-load_dotenv()
 logger = get_logger(__name__)
-
 
 def run():
     return _app.run()
@@ -22,8 +19,7 @@ def run():
 def run_migrations(downgrade_first=False):
     # run db migrations
     db_type = utils.get_db_type()
-    # TODO : Handle by logger
-    print("starting to run the migrations for '{db_type}'...".format(db_type=db_type))
+    logger.info("starting to run the migrations for '{db_type}'...".format(db_type=db_type))
     with utils.db_session() as session:
         alembic_cfg = Config("alembic.ini")
         # pylint: disable=unsupported-assignment-operation
