@@ -49,7 +49,7 @@ class TestTransformer(unittest.TestCase):
         pipeline = self.data1['pipeline'][0]
         cols_to_update = pipeline["tranforms"][1]["data"]
         upd_df = Transformer.add_column(self, self.df1, cols_to_update)
-        self.assertTrue(10, len(upd_df.columns))
+        self.assertTrue(10, len(upd_df.columns)) #nok
 
     def test_group_by_returns_sum_population_of_column(self):
         pass
