@@ -31,19 +31,15 @@ class Pipeline:
             pd.DataFrame: [description]
         """
         if self.metadata_handler:
+            etl_metadata=None
+            with db_session(echo=False) as session:
+                etl_metadata = get_etl_metadata(session, (self.data_class).__tablename__)
+                session.close()
             if "frequency" in dict.keys(self.metadata_handler):
                 frequency = self.metadata_handler["frequency"]
                 if frequency == "yearly":
-                    with db_session(echo=False) as session:
-                        etl_metadata = (
-                            session.query(ETL_Metadata)
-                            .filter(
-                                (ETL_Metadata.table == (self.data_class).__tablename__)
-                            )
-                            .first()
-                        )
-                        session.close()
                     if etl_metadata:
+                        # return empty dataframe when pipeline has already exported the date of current year
                         if etl_metadata.last_date_processed >= datetime.now(
                             timezone("Europe/Brussels")
                         ).date().replace(month=1, day=1):
@@ -52,19 +48,8 @@ class Pipeline:
                     if "full_refresh" in dict.keys(self.metadata_handler):
                         full_refresh = self.metadata_handler["full_refresh"]
                         if full_refresh:
-                            with db_session(echo=False) as session:
-                                etl_metadata = (
-                                    session.query(ETL_Metadata)
-                                    .filter(
-                                        (
-                                            ETL_Metadata.table
-                                            == (self.data_class).__tablename__
-                                        )
-                                    )
-                                    .first()
-                                )
-                                session.close()
                             if etl_metadata:
+                                # return empty dataframe when pipeline has already exported the date of today
                                 if (
                                     etl_metadata.last_date_processed
                                     >= datetime.now(timezone("Europe/Brussels")).date()
@@ -95,52 +80,33 @@ class Pipeline:
         return self.transformer.transform(data_frame)
 
     def handle_metadata(self, data_frame: pd.DataFrame):
+        self.last_date_processed = date.min
+
+        # When there is no 'metadata_handler' registered for the pipeline, just return the dataframe as is.
         if not self.metadata_handler:
             return data_frame
 
+         # When the data_frame is empty, just return the dataframe as is.
         if data_frame.empty:
             return data_frame
 
-        self.last_date_processed = date.min
-        frequency = "daily"
-        if "frequency" in dict.keys(self.metadata_handler):
-            frequency = self.metadata_handler["frequency"]
-            # if frequency != "daily":
-            #     self.last_date_processed = datetime.now(
-            #         timezone("Europe/Brussels")
-            #     ).date()
-            if "full_refresh" in dict.keys(self.metadata_handler):
-                full_refresh = self.metadata_handler["full_refresh"]
-                if full_refresh:
-                    self.last_date_processed = datetime.now(
-                        timezone("Europe/Brussels")
-                    ).date()
-        # used for testing...
-        # days_to_extract = 30
-        # today = datetime.now(timezone('Europe/Brussels')).date()
-        # self.last_date_processed = today - timedelta(days=days_to_extract)
+        if "full_refresh" in dict.keys(self.metadata_handler):
+            full_refresh = self.metadata_handler["full_refresh"]
+            if full_refresh:
+                self.last_date_processed = datetime.now(
+                    timezone("Europe/Brussels")
+                ).date()
 
         with db_session(echo=False) as session:
-            etl_metadata = (
-                session.query(ETL_Metadata)
-                .filter((ETL_Metadata.table == (self.data_class).__tablename__))
-                .first()
-            )
+            # fetch the 'etl_metadate' from the database for the pipeline and set it's 'last_date_processed' as a variable
+            etl_metadata = get_etl_metadata(session, (self.data_class).__tablename__)
             if etl_metadata:
                 self.last_date_processed = etl_metadata.last_date_processed
-                # used for testing...
-                # days_to_extract = ((datetime.now(timezone('Europe/Brussels')).date()) - self.last_date_processed).days
             session.close()
         if self.metadata_handler:
+            # When a 'date_column' is provided in the 'metadata_handler', filter the dataframe
             if "date_column" in dict(self.metadata_handler):
                 date_until_to_filter = datetime.now(timezone("Europe/Brussels")).date()
-                # used to reduce the size of the data_frame. Bulk inserts are taking long...
-                # min_date_in_data_frame = (data_frame[self.metadata_handler["date_column"]]).min()
-                # if (self.last_date_processed == date.min):
-                #     self.last_date_processed = (min_date_in_data_frame - timedelta(days=1))
-                # max_timedelta_in_days = 90
-                # if ((date_until_to_filter - self.last_date_processed).days > max_timedelta_in_days):
-                #     date_until_to_filter = self.last_date_processed + timedelta(days=max_timedelta_in_days)
                 data_frame = data_frame[
                     (
                         data_frame[self.metadata_handler["date_column"]]
@@ -150,9 +116,8 @@ class Pipeline:
                         data_frame[self.metadata_handler["date_column"]]
                         <= date_until_to_filter
                     )
-                    # used for testing...
-                    # (data_frame[self.metadata_handler["date_column"]] <= ((datetime.now(timezone('Europe/Brussels')).date()) - timedelta(days=(days_to_extract-3))))
                 ]
+            # When a 'year_column' is provided in the 'metadata_handler', filter the dataframe
             if "year_column" in dict(self.metadata_handler):
                 year_until_to_filter = datetime.now(timezone("Europe/Brussels")).date().year
                 data_frame = data_frame[
@@ -164,18 +129,29 @@ class Pipeline:
                         data_frame[self.metadata_handler["year_column"]]
                         <= year_until_to_filter
                     )
-                    # used for testing...
-                    # (data_frame[self.metadata_handler["date_column"]] <= ((datetime.now(timezone('Europe/Brussels')).date()) - timedelta(days=(days_to_extract-3))))
                 ]
         return data_frame
 
     def load(self, data_frame: pd.DataFrame):
+        last_run_date_time = datetime.now(timezone("Europe/Brussels"))
+        # self.last_date_processed set during 'handle_metadata'
+        last_date_processed = self.last_date_processed
+
         if data_frame.empty:
+            with db_session() as session:
+                etl_metadata = update_or_set_etl_metadata(
+                    session,
+                    (self.data_class).__tablename__,
+                    last_run_date_time,
+                    last_date_processed
+                )
+                session.commit()
+                session.close()
             return []
+
         data_list = [
             self.data_class(**kwargs) for kwargs in data_frame.to_dict(orient="records")
         ]
-        last_date_processed = self.last_date_processed
 
         truncate_table = False
         if self.metadata_handler:
@@ -196,39 +172,21 @@ class Pipeline:
                     truncate_table = True
         with db_session() as session:
             if truncate_table:
-                session.execute(
-                    (
-                        ("""TRUNCATE TABLE {table}""").format(
-                            table=(self.data_class).__tablename__
-                        )
-                    )
-                    if (get_db_type() == "mssql")
-                    else (
-                        ("""DELETE FROM {table}""").format(
-                            table=(self.data_class).__tablename__
-                        )
-                    )
-                )
-            etl_metadata = (
-                session.query(ETL_Metadata)
-                .filter((ETL_Metadata.table == (self.data_class).__tablename__))
-                .first()
+                execute_truncate_table(session, (self.data_class).__tablename__)
+            etl_metadata = update_or_set_etl_metadata(
+                session,
+                (self.data_class).__tablename__,
+                last_run_date_time,
+                last_date_processed
             )
-            if etl_metadata:
-                etl_metadata.last_date_processed = last_date_processed
-            else:
-                etl_metadata = ETL_Metadata(
-                    (self.data_class).__tablename__, last_date_processed
+            # This log will only be process when the log level of the 'sqlalchemy' logger in the 'logger.ini' is set to 'INFO' or less.
+            logger.info(
+                "pipeline '{table}' : {length} lines to be added to the database. etl_metadata.last_date_processed will be set to {last_update}".format(
+                    table=self.data_class.__tablename__,
+                    length=len(data_list),
+                    last_update=etl_metadata.last_date_processed,
                 )
-                session.add(etl_metadata)
-                # This log will only be process when the log level of the 'sqlalchemy' logger in the 'logger.ini' is set to 'INFO' or less.
-                logger.info(
-                    "pipeline '{table}' : {length} lines to be added to the database. etl_metadata.last_date_processed will be set to {last_update}".format(
-                        table=self.data_class.__tablename__,
-                        length=len(data_list),
-                        last_update=etl_metadata.last_date_processed,
-                    )
-                )
+            )
 
             # engine = session.get_bind()
             # data_frame.to_sql(
@@ -238,7 +196,6 @@ class Pipeline:
             #     chunksize=1000,
             #     index=False
             # )
-            # lst = [50, 70, 30, 20, 90, 10, 50]
             length = len(data_list)
             step = 10000
             array_to_process = []
@@ -273,3 +230,41 @@ class Pipeline:
         data_frame = self.handle_metadata(data_frame)
         data_list = self.load(data_frame)
         return data_list
+
+
+def get_etl_metadata(session, tablename):
+    etl_metadata = (
+        session.query(ETL_Metadata)
+        .filter(
+            (ETL_Metadata.table == tablename)
+        )
+        .first()
+    )
+    return etl_metadata
+
+def update_or_set_etl_metadata(session, tablename, last_run_date_time, last_date_processed):
+    etl_metadata = get_etl_metadata(session, tablename)
+    if etl_metadata:
+        etl_metadata.last_date_processed = last_date_processed
+        etl_metadata.last_run_date_time = last_run_date_time
+    else:
+        etl_metadata = ETL_Metadata(
+            tablename,
+            last_date_processed,
+            last_run_date_time
+        )
+        session.add(etl_metadata)
+    return etl_metadata
+
+def execute_truncate_table(session, tablename):
+    session.execute(
+        (
+            ("""TRUNCATE TABLE {tablename}""").format(
+                tablename=tablename
+            )
+        ) if (get_db_type() == "mssql") else (
+            ("""DELETE FROM {tablename}""").format(
+                tablename=tablename
+            )
+        )
+    )

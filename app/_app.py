@@ -65,25 +65,23 @@ def run():
                 if (type(pl) == dict):
                     if ("model" in dict.keys(pl)):
                         model = pl["model"] 
-                logger.error(
-                    "Pipeline '{model}' : {exception}".format(
-                        model=model,
-                        exception=e
-                    ),
-                    exc_info=True
+                message="Pipeline '{model}' : {exception}".format(
+                    model=model,
+                    exception=e
                 )
                 success=False
                 messages.append(
                     Message(
                         success=False,
                         model=model,
-                        message=e
+                        message=message
                     )
                 )
+                logger.error(message, exc_info=True)
+
         send_info(success, messages)
 
 def send_info(success, messages):
-    # return print(messages)
     html_content="""
         <p>Dear,</p>
         <p>Here you can find more information about the pipelines.</p>
@@ -112,7 +110,7 @@ def send_info(success, messages):
         </table>
     """
     send_mail(
-        subject="SUCCESS : ETL for covid pipelines processed successfully" if success else "ERROR | ETL for covid pipelines processed with errors...",
+        subject="SUCCESS | ETL for covid pipelines processed successfully" if success else "ERROR | ETL for covid pipelines processed with errors...",
         html_content=html_content
     )
 

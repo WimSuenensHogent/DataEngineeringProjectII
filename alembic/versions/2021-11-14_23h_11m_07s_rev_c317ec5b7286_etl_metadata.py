@@ -22,6 +22,7 @@ def upgrade():
         "etl_metadata",
         sa.Column("table", sa.String(length=255), nullable=False),
         sa.Column("last_date_processed", sa.Date(), nullable=False),
+        sa.Column("last_run_date_time", sa.DateTime(), nullable=False),
         sa.PrimaryKeyConstraint("table"),
     )
     # ### end Alembic commands ###
