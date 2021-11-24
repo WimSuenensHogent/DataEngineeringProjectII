@@ -58,6 +58,9 @@ def get_lambda_to_apply(data=None):
     if "find" in dict.keys(data) and "replace" in dict.keys(data):
         find = data["find"]
         replace = data["replace"]
+        if (replace == "np.nan"):
+            replace = np.nan
+            # return lambda x: np.nan
         return lambda x: re.sub(find, replace, x)
 
     return lambda_to_apply
@@ -85,10 +88,19 @@ class Transformer:
         data_frame.rename(columns=columns, inplace=True)
         return data_frame
 
-    # def replace_invalid_with_na(self, data_frame, data_transform):
-    #     replace_value = data_transform["replace_value"]
-    #     data_frame.replace(replace_value, np.nan, inplace=True)
-    #     return data_frame
+    def replace_invalid_with_na(self, data_frame, data_transform):
+        replace_value = data_transform["replace_value"]
+        data_frame.replace(replace_value, np.nan, inplace=True)
+        return data_frame
+
+    def replace(self, data_frame, data_transform):
+        to_replace = data_transform["to_replace"]
+        value = data_transform["value"]
+        if (value == "np.nan"):
+            value = np.nan
+        inplace = data_transform["inplace"]
+        data_frame.replace(to_replace=to_replace, value=value, inplace=inplace)
+        return data_frame
 
     # def drop_previous_years(self, data_frame, data_transform):
     #     data_frame.drop(

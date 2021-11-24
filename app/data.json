@@ -676,6 +676,17 @@
               "format": "{0:0>5}"
             }
           }
+        },
+        {
+          "type": "replace",
+          "data": {
+            "to_replace": "*",
+            "value": "np.nan",
+            "inplace": true
+          }
+        },
+        {
+          "type": "drop_na"
         }
       ]
     }
