@@ -85,16 +85,16 @@ class Transformer:
         data_frame.rename(columns=columns, inplace=True)
         return data_frame
 
-    def replace_invalid_with_na(self, data_frame, data_transform):
-        replace_value = data_transform["replace_value"]
-        data_frame.replace(replace_value, np.nan, inplace=True)
-        return data_frame
+    # def replace_invalid_with_na(self, data_frame, data_transform):
+    #     replace_value = data_transform["replace_value"]
+    #     data_frame.replace(replace_value, np.nan, inplace=True)
+    #     return data_frame
 
-    def drop_previous_years(self, data_frame, data_transform):
-        data_frame.drop(
-            data_frame[data_frame.year < data_frame["year"].max()].index, inplace=True
-        )
-        return data_frame
+    # def drop_previous_years(self, data_frame, data_transform):
+    #     data_frame.drop(
+    #         data_frame[data_frame.year < data_frame["year"].max()].index, inplace=True
+    #     )
+    #     return data_frame
 
     def drop_na(self, data_frame, data_transform):
         data_frame.dropna(inplace=True)

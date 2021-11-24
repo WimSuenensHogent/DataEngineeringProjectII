@@ -1,4 +1,4 @@
-"""income_data
+"""fact_income_by_nis_code_yearly_updated
 
 Revision ID: 52c236279c17
 Revises: b89feedf3563
@@ -19,7 +19,7 @@ depends_on = None
 
 def upgrade():
     op.create_table(
-        "fact_region_income",
+        "fact_income_by_nis_code_yearly_updated",
         sa.Column("year", sa.Integer(), nullable=False),
         sa.Column("municipality_niscode", sa.String(5), nullable=False),
         sa.Column("nr_of_declarations", sa.Integer(), nullable=False),
@@ -32,8 +32,13 @@ def upgrade():
         sa.Column("total_taxes", sa.Float(), nullable=False),
         sa.Column("nr_taxes", sa.Integer(), nullable=False),
         sa.Column("nr_population", sa.Integer(), nullable=False),
+        (
+            sa.CheckConstraint("LEN(municipality_niscode)=5")
+                ) if (get_db_type() == "mssql") else (
+            sa.CheckConstraint("length(municipality_niscode)==5")
+        ),
         sa.PrimaryKeyConstraint("year", "municipality_niscode"),
     )
 
 def downgrade():
-    op.drop_table("fact_region_income")
+    op.drop_table("fact_income_by_nis_code_yearly_updated")

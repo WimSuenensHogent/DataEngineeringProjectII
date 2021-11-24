@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, tzinfo
 from pytz import timezone
 
 import pandas as pd
@@ -105,10 +105,10 @@ class Pipeline:
         frequency = "daily"
         if "frequency" in dict.keys(self.metadata_handler):
             frequency = self.metadata_handler["frequency"]
-            if frequency != "daily":
-                self.last_date_processed = datetime.now(
-                    timezone("Europe/Brussels")
-                ).date()
+            # if frequency != "daily":
+            #     self.last_date_processed = datetime.now(
+            #         timezone("Europe/Brussels")
+            #     ).date()
             if "full_refresh" in dict.keys(self.metadata_handler):
                 full_refresh = self.metadata_handler["full_refresh"]
                 if full_refresh:
@@ -126,10 +126,11 @@ class Pipeline:
                 .filter((ETL_Metadata.table == (self.data_class).__tablename__))
                 .first()
             )
-        if etl_metadata:
-            self.last_date_processed = etl_metadata.last_date_processed
-            # used for testing...
-            # days_to_extract = ((datetime.now(timezone('Europe/Brussels')).date()) - self.last_date_processed).days
+            if etl_metadata:
+                self.last_date_processed = etl_metadata.last_date_processed
+                # used for testing...
+                # days_to_extract = ((datetime.now(timezone('Europe/Brussels')).date()) - self.last_date_processed).days
+            session.close()
         if self.metadata_handler:
             if "date_column" in dict(self.metadata_handler):
                 date_until_to_filter = datetime.now(timezone("Europe/Brussels")).date()
@@ -152,7 +153,20 @@ class Pipeline:
                     # used for testing...
                     # (data_frame[self.metadata_handler["date_column"]] <= ((datetime.now(timezone('Europe/Brussels')).date()) - timedelta(days=(days_to_extract-3))))
                 ]
-
+            if "year_column" in dict(self.metadata_handler):
+                year_until_to_filter = datetime.now(timezone("Europe/Brussels")).date().year
+                data_frame = data_frame[
+                    (
+                        data_frame[self.metadata_handler["year_column"]]
+                        > self.last_date_processed.year
+                    )
+                    & (
+                        data_frame[self.metadata_handler["year_column"]]
+                        <= year_until_to_filter
+                    )
+                    # used for testing...
+                    # (data_frame[self.metadata_handler["date_column"]] <= ((datetime.now(timezone('Europe/Brussels')).date()) - timedelta(days=(days_to_extract-3))))
+                ]
         return data_frame
 
     def load(self, data_frame: pd.DataFrame):
@@ -168,6 +182,14 @@ class Pipeline:
             if "date_column" in dict.keys(self.metadata_handler):
                 date_column = self.metadata_handler["date_column"]
                 last_date_processed = (data_frame[date_column]).max()
+            if "year_column" in dict.keys(self.metadata_handler):
+                date_column = self.metadata_handler["year_column"]
+                last_date_processed = datetime(
+                    (data_frame[date_column]).max(),
+                    12,
+                    31,
+                    tzinfo=timezone("Europe/Brussels")
+                ).date()
             if "full_refresh" in dict.keys(self.metadata_handler):
                 full_refresh = self.metadata_handler["full_refresh"]
                 if full_refresh:

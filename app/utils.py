@@ -19,7 +19,6 @@ def get_db_type():
         if URL:
             if "mssql" in URL.lower():
                 TYPE = "mssql"
-
     return TYPE
 
 
@@ -70,13 +69,17 @@ def db_session(echo=False):
         finally:
             session.close()
 
-def send_mail(to_emails: str, subject: str, html_content: str):
+def send_mail(subject: str, html_content: str, to_emails: str=None):
     try:
         sendgrid_api = os.environ.get('SENDGRID_API_KEY')
         from_email = os.environ.get('SENDGRID_FROM_EMAIL')
         if (not sendgrid_api):
             return
         if (not from_email):
+            return
+        if (not to_emails):
+            to_emails=os.environ.get('LOGS_TO_EMAILS')
+        if (not to_emails):
             return
         message = Mail(
             from_email=from_email,

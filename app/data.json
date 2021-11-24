@@ -198,7 +198,8 @@
       "source": "https://statbel.fgov.be/sites/default/files/files/opendata/bevolking%20naar%20woonplaats%2C%20nationaliteit%20burgelijke%20staat%20%2C%20leeftijd%20en%20geslacht/TF_SOC_POP_STRUCT_2021.zip",
       "model": "DemographicsByNISCodeAndCategory",
       "metadata_handler": {
-        "frequency": "yearly"
+        "frequency": "yearly",
+        "year_column": "year"
       },
       "tranforms": [
         {
@@ -327,7 +328,7 @@
             "column": "date",
             "update": {
               "type": "date",
-              "format": "%d/%m/%Y"
+              "format": "%d-%m-%Y"
             }
           }
         },
@@ -596,9 +597,10 @@
     },
     {
       "source": "https://statbel.fgov.be/sites/default/files/files/opendata/arbeid/TF_PSNL_INC_TAX_MUNTY.zip",
-      "model": "RegionIncome",
+      "model": "IncomeByNISCodeYearlyUpdated",
       "metadata_handler": {
-        "frequency": "yearly"
+        "frequency": "yearly",
+        "year_column": "year"
       },
       "tranforms": [
         {
@@ -665,16 +667,15 @@
           }
         },
         {
-          "type": "replace_invalid_with_na",
+          "type": "update_value",
           "data": {
-            "replace_value": "*"
+            "column": "municipality_niscode",
+            "type": "string",
+            "update": {
+              "type": "string",
+              "format": "{0:0>5}"
+            }
           }
-        },
-        {
-          "type": "drop_previous_years"
-        },
-        {
-          "type": "drop_na"
         }
       ]
     }

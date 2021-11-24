@@ -294,8 +294,9 @@ class VaccinationsByNISCodeAndWeek(Base):
         )
 
 
-class RegionIncome(Base):
-    __tablename__ = "fact_region_income"
+class IncomeByNISCodeYearlyUpdated(Base):
+    __tablename__ = "fact_income_by_nis_code_yearly_updated"
+    
     year = Column(Integer(), primary_key=True)
     municipality_niscode = Column(Integer(), primary_key=True)
     nr_of_declarations = Column(Integer(), nullable=False)
@@ -308,3 +309,25 @@ class RegionIncome(Base):
     total_taxes = Column(Integer(), nullable=False)
     nr_taxes = Column(Integer(), nullable=False)
     nr_population = Column(Integer(), nullable=False)
+
+    __table_args__ = tuple(
+        (CheckConstraint("LEN(municipality_niscode)=5"))
+        if (get_db_type() == "mssql")
+        else (CheckConstraint("length(municipality_niscode)==5")),
+    )
+
+    @validates("municipality_niscode")
+    def validate_municipality_niscode(self, key, municipality_niscode) -> str:
+        if len(municipality_niscode) != 5:
+            raise ValueError("'municipality_niscode' should be 5 characters long..")
+        return municipality_niscode
+
+    def __repr__(self):
+        return """
+            <VaccinationsByNISCodeAndWeek(year='%s', week='%s', nis_code='%s', cumul_of_week='%s')>
+            """ % (
+            self.year,
+            self.week,
+            self.nis_code,
+            self.cumul_of_week,
+        )

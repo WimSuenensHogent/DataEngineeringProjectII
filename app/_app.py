@@ -1,6 +1,5 @@
-import json
 import os
-import traceback
+import json
 
 from app.etl.pipeline import Pipeline
 from app.etl.transformer import Transformer
@@ -21,7 +20,7 @@ def run():
         data = json.load(file)
         success=True
         messages=[]
-        for pl in data["pipelines"][-1:]:
+        for pl in data["pipelines"]:
             try:
                 data_class = getattr(models, pl["model"])
                 metadata_handler = None
@@ -35,9 +34,11 @@ def run():
                 )
                 # data_frame = pipeline.extract()
                 # data_frame = pipeline.transform(data_frame)
-                # print(data_frame)
-                # print(data_frame.describe())
+                # data_frame = pipeline.handle_metadata(data_frame)
+                # # print(data_frame)
+                # # print(data_frame.describe())
                 # print(data_frame.info())
+                # return
                 logger.info("Starting to process pipeline '{table}'...".format(
                     table=data_class.__tablename__
                 ))
@@ -72,36 +73,36 @@ def run():
         send_info(success, messages)
 
 def send_info(success, messages):
-        html_content="""
-            <p>Dear,</p>
-            <p>Here you can find more information about the pipelines.</p>
-            <table style="width:100%;">
-        """
+    # return print(messages)
+    html_content="""
+        <p>Dear,</p>
+        <p>Here you can find more information about the pipelines.</p>
+        <table style="width:100%;">
+    """
+    html_content=html_content+"""
+        <thead>
+            <tr>
+                <th>Success</th>
+                <th>Pipeline</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+        <tbody>
+    """
+    for message in messages:
         html_content=html_content+"""
-            <thead>
-                <tr>
-                    <th>Success</th>
-                    <th>Pipeline</th>
-                    <th>Message</th>
-                </tr>
-            </thead>
-            <tbody>
-        """
-        for message in messages:
-            html_content=html_content+"""
-                <tr>
-                    <td>{success}</td>
-                    <td>{model}</td>
-                    <td>{message}</td>
-                </tr>
-            """.format(success=message["success"], model=message["model"], message=message["message"])
-        html_content=html_content+"""
-                </tbody>
-            </table>
-        """
-        send_mail(
-            to_emails="wim.suenens@student.hogent.be",
-            subject="SUCCESS : ETL for covid pipelines processed successfully" if success else "ERROR | ETL for covid pipelines processed with errors...",
-            html_content=html_content
-        )
+            <tr>
+                <td>{success}</td>
+                <td>{model}</td>
+                <td>{message}</td>
+            </tr>
+        """.format(success=message["success"], model=message["model"], message=message["message"])
+    html_content=html_content+"""
+            </tbody>
+        </table>
+    """
+    send_mail(
+        subject="SUCCESS : ETL for covid pipelines processed successfully" if success else "ERROR | ETL for covid pipelines processed with errors...",
+        html_content=html_content
+    )
 

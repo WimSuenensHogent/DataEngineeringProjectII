@@ -32,6 +32,5 @@ class ETLLogHandler(logging.Handler):
         created_at=record.__dict__['created'],
       )
       session.add(log)
-      print(log)
       session.commit()
       session.close()
