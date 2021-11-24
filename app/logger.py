@@ -7,7 +7,10 @@ from app import utils
 from app.models.log import Log
 
 def get_logger(name):
-  logging.config.fileConfig("logger.ini")
+  try:
+    logging.config.fileConfig("logger.ini")
+  except Exception as e:
+    print(e)  
   logger = logging.getLogger(name)
   return logger
 
