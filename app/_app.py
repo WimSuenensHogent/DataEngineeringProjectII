@@ -8,6 +8,12 @@ from app.settings import BASE_DIR
 from app.logger import get_logger
 from app.utils import send_mail
 
+class Message():
+    def __init__(self, success, model, message):
+        self.success = success
+        self.model = model
+        self.message = message
+
 def run():
     logger = get_logger(__name__)
 
@@ -46,11 +52,13 @@ def run():
                 message="Finished pipeline '{table}' : {length} lines added to the database".format(
                     table=data_class.__tablename__, length=len(data_list)
                 )
-                messages.append({
-                    "success": True,
-                    "model": data_class.__tablename__,
-                    "message": message
-                })                
+                messages.append(
+                    Message(
+                        success=True,
+                        model=data_class.__tablename__,
+                        message=message
+                    )
+                )
                 logger.info(message)
             except Exception as e:
                 model="Unknown"
@@ -65,11 +73,13 @@ def run():
                     exc_info=True
                 )
                 success=False
-                messages.append({
-                    "success": False,
-                    "model": model,
-                    "message": e
-                })
+                messages.append(
+                    Message(
+                        success=False,
+                        model=model,
+                        message=e
+                    )
+                )
         send_info(success, messages)
 
 def send_info(success, messages):
@@ -92,11 +102,11 @@ def send_info(success, messages):
     for message in messages:
         html_content=html_content+"""
             <tr>
-                <td>{success}</td>
-                <td>{model}</td>
-                <td>{message}</td>
+                <td>{message.success}</td>
+                <td>{message.model}</td>
+                <td>{message.message}</td>
             </tr>
-        """.format(success=message["success"], model=message["model"], message=message["message"])
+        """.format(message=message)
     html_content=html_content+"""
             </tbody>
         </table>
