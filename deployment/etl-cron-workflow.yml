@@ -8,13 +8,15 @@ spec:
   timezone: Europe/Brussels
   concurrencyPolicy: "Forbid"
   startingDeadlineSeconds: 70
+  podGC:
+    strategy: OnPodCompletion
   workflowSpec:
     entrypoint: etl-process
     serviceAccountName: argo
     templates:
     - name: etl-process
       script:
-        image: wimsuenenshogent/covid-etl:1.0
+        image: wimsuenenshogent/covid-etl:1.1
         imagePullPolicy: Always
         command: [bash]
         source: |
@@ -36,3 +38,12 @@ spec:
             secretKeyRef:
               name: etl-secrets
               key: password
+        - name: SENDGRID_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: sendgrid-api-key
+              key: api-key
+        - name: SENDGRID_FROM_EMAIL
+          value: dep.hogent@gmail.com
+        - name: LOGS_TO_EMAILS
+          value: wim.suenens@student.hogent.be

@@ -82,6 +82,13 @@ class Pipeline:
     def handle_metadata(self, data_frame: pd.DataFrame):
         self.last_date_processed = date.min
 
+        with db_session(echo=False) as session:
+            # fetch the 'etl_metadate' from the database for the pipeline and set it's 'last_date_processed' as a variable
+            etl_metadata = get_etl_metadata(session, (self.data_class).__tablename__)
+            if etl_metadata:
+                self.last_date_processed = etl_metadata.last_date_processed
+            session.close()
+
         # When there is no 'metadata_handler' registered for the pipeline, just return the dataframe as is.
         if not self.metadata_handler:
             return data_frame
@@ -97,12 +104,6 @@ class Pipeline:
                     timezone("Europe/Brussels")
                 ).date()
 
-        with db_session(echo=False) as session:
-            # fetch the 'etl_metadate' from the database for the pipeline and set it's 'last_date_processed' as a variable
-            etl_metadata = get_etl_metadata(session, (self.data_class).__tablename__)
-            if etl_metadata:
-                self.last_date_processed = etl_metadata.last_date_processed
-            session.close()
         if self.metadata_handler:
             # When a 'date_column' is provided in the 'metadata_handler', filter the dataframe
             if "date_column" in dict(self.metadata_handler):
@@ -143,7 +144,7 @@ class Pipeline:
                     session,
                     (self.data_class).__tablename__,
                     last_run_date_time,
-                    last_date_processed
+                    # last_date_processed
                 )
                 session.commit()
                 session.close()
@@ -242,15 +243,16 @@ def get_etl_metadata(session, tablename):
     )
     return etl_metadata
 
-def update_or_set_etl_metadata(session, tablename, last_run_date_time, last_date_processed):
+def update_or_set_etl_metadata(session, tablename, last_run_date_time, last_date_processed=None):
     etl_metadata = get_etl_metadata(session, tablename)
     if etl_metadata:
-        etl_metadata.last_date_processed = last_date_processed
+        if (last_date_processed):
+            etl_metadata.last_date_processed = last_date_processed
         etl_metadata.last_run_date_time = last_run_date_time
     else:
         etl_metadata = ETL_Metadata(
             tablename,
-            last_date_processed,
+            last_date_processed or date.min,
             last_run_date_time
         )
         session.add(etl_metadata)
