@@ -88,10 +88,10 @@ class Transformer:
         data_frame.rename(columns=columns, inplace=True)
         return data_frame
 
-    def replace_invalid_with_na(self, data_frame, data_transform):
-        replace_value = data_transform["replace_value"]
-        data_frame.replace(replace_value, np.nan, inplace=True)
-        return data_frame
+    # def replace_invalid_with_na(self, data_frame, data_transform):
+    #     replace_value = data_transform["replace_value"]
+    #     data_frame.replace(replace_value, np.nan, inplace=True)
+    #     return data_frame
 
     def replace(self, data_frame, data_transform):
         to_replace = data_transform["to_replace"]

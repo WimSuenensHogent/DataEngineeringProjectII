@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta, tzinfo
 from pytz import timezone
+import tqdm
 
 import pandas as pd
 
@@ -44,17 +45,17 @@ class Pipeline:
                             timezone("Europe/Brussels")
                         ).date().replace(month=1, day=1):
                             return pd.DataFrame()
-                if frequency == "daily":
-                    if "full_refresh" in dict.keys(self.metadata_handler):
-                        full_refresh = self.metadata_handler["full_refresh"]
-                        if full_refresh:
-                            if etl_metadata:
-                                # return empty dataframe when pipeline has already exported the date of today
-                                if (
-                                    etl_metadata.last_date_processed
-                                    >= datetime.now(timezone("Europe/Brussels")).date()
-                                ):
-                                    return pd.DataFrame()
+                # if frequency == "daily":
+                #     if "full_refresh" in dict.keys(self.metadata_handler):
+                #         full_refresh = self.metadata_handler["full_refresh"]
+                #         if full_refresh:
+                #             if etl_metadata:
+                #                 # return empty dataframe when pipeline has already exported the date of today
+                #                 if (
+                #                     etl_metadata.last_date_processed
+                #                     >= datetime.now(timezone("Europe/Brussels")).date()
+                #                 ):
+                #                     return pd.DataFrame()
 
         if ".csv" in self.path:
             data_frame = pd.read_csv(self.path)
@@ -198,7 +199,7 @@ class Pipeline:
             #     index=False
             # )
             length = len(data_list)
-            step = 10000
+            step = 1000
             array_to_process = []
             processed = 0
             index = 0
@@ -210,17 +211,19 @@ class Pipeline:
                 index = till_index
 
             processed = 0
-            for i in array_to_process:
+            # for i in array_to_process:
+            # https://pypi.org/project/tqdm/
+            for i in tqdm.tqdm(array_to_process, desc=self.data_class.__tablename__):
                 session.bulk_save_objects(i)
                 processed = processed + len(i)
                 # This log will only be process when the log level of the 'sqlalchemy' logger in the 'logger.ini' is set to 'INFO' or less.
-                logger.info(
-                    "pipeline '{table}' : {processed} of {length} lines added to the database...".format(
-                        table=self.data_class.__tablename__,
-                        processed=processed,
-                        length=len(data_list),
-                    )
-                )
+                # logger.info(
+                #     "pipeline '{table}' : {processed} of {length} lines added to the database...".format(
+                #         table=self.data_class.__tablename__,
+                #         processed=processed,
+                #         length=len(data_list),
+                #     )
+                # )
             # session.bulk_save_objects(data_list)
             session.commit()
         return data_list

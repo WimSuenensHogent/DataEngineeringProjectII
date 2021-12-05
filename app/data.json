@@ -91,7 +91,7 @@
       "model": "CovidVaccinationByCategory",
       "metadata_handler": {
         "frequency": "daily",
-        "date_column": "date"
+        "full_refresh": true
       },
       "tranforms": [
         {
@@ -128,7 +128,7 @@
       "model": "CovidMortalityByCategory",
       "metadata_handler": {
         "frequency": "daily",
-        "date_column": "date"
+        "full_refresh": true
       },
       "tranforms": [
         {
@@ -163,7 +163,7 @@
       "model": "CovidConfirmedCasesByCategory",
       "metadata_handler": {
         "frequency": "daily",
-        "date_column": "date"
+        "full_refresh": true
       },
       "tranforms": [
         {
@@ -409,6 +409,7 @@
               "FULLY_VACCINATED_JJ_AMT": "vaccinated_fully_johnsonandjohnson",
               "FULLY_VACCINATED_OTHER_AMT": "vaccinated_fully_other",
               "PARTLY_VACCINATED_OTHER_AMT": "vaccinated_partly_other",
+              "BOOSTER_AMT": "vaccinated_with_booster",
               "POPULATION_NBR": "population_by_agecategory_and_municipality"
             }
           }
@@ -472,7 +473,7 @@
       "model": "VaccinationsByNISCodeAndWeek",
       "metadata_handler": {
         "frequency": "daily",
-        "date_column": "date"
+        "full_refresh": true
       },
       "tranforms": [
         {
@@ -681,7 +682,7 @@
           "type": "replace",
           "data": {
             "to_replace": "*",
-            "value": "np.nan",
+            "value": 0,
             "inplace": true
           }
         },

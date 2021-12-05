@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+from sendgrid.helpers.mail import Mail, Personalization, To
 
 def get_db_type():
     # return "mssql"
@@ -81,12 +81,20 @@ def send_mail(subject: str, html_content: str, to_emails: str=None):
             to_emails=os.environ.get('LOGS_TO_EMAILS')
         if (not to_emails):
             return
+        
         message = Mail(
             from_email=from_email,
-            to_emails=to_emails,
+            # to_emails=to_emails,
             subject=subject,
             html_content=html_content
         )
+        personalization = Personalization()
+        
+        for email in (to_emails.split(";")):
+            personalization.add_to(
+                To(email)
+            )
+        message.add_personalization(personalization)
         sg = SendGridAPIClient(sendgrid_api)
         response = sg.send(message)
         # print(response.status_code)

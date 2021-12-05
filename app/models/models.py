@@ -235,6 +235,7 @@ class VaccinationsByNISCodeDailyUpdated(Base):
     vaccinated_fully_johnsonandjohnson = Column(Integer, nullable=False)
     vaccinated_fully_other = Column(Integer, nullable=False)
     vaccinated_partly_other = Column(Integer, nullable=False)
+    vaccinated_with_booster = Column(Integer, nullable=False, server_default="0")
     population_by_agecategory_and_municipality = Column(Integer, nullable=False)
 
     __table_args__ = tuple(

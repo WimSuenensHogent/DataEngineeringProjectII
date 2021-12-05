@@ -46,4 +46,4 @@ spec:
         - name: SENDGRID_FROM_EMAIL
           value: dep.hogent@gmail.com
         - name: LOGS_TO_EMAILS
-          value: wim.suenens@student.hogent.be
+          value: tim.vancampenhout@student.hogent.be;ilya.mikhaylov@student.hogent.be;wim.suenens@student.hogent.be
